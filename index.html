@@ -700,14 +700,18 @@ details.det{font-size:13px} details.det summary{cursor:pointer;color:var(--accen
     var coef = annexe === 'VIII' ? 1.4 / 8 : 1.3 / 10;
     $('r-aj').textContent = aj != null ? ((s.params.aj && s.params.aj.verif) ? '≈ ' : '') + eur(aj) : '—';
     $('r-cost').textContent = aj != null ? (hc * coef).toFixed(2).replace('.', ',') + ' j = ' + eur0(hc * coef * aj) : (hc * coef).toFixed(2).replace('.', ',') + ' jour d’allocation';
-    var cachets = monthMv.filter(function (m) { return isCachet(m) && enc(m); });
-    $('r-cachets').textContent = cachets.length + (cachets.length > 1 ? ' cachets' : ' cachet') + (cachets.length ? ' · ' + eur(cachets.reduce(function (n, m) { return n + m._amt; }, 0)) : '');
+    var cachets = monthMv.filter(function (m) { return isCachet(m) && isDeclared(m) && enc(m); });
+    var cashEnc = monthMv.filter(function (m) { return isCashDate(m) && enc(m); });
+    var datesPrev = monthMv.filter(function (m) { return isCachet(m) && !enc(m); });
+    var part = function (arr, one, many) { return arr.length + ' ' + (arr.length > 1 ? many : one) + (arr.length ? ' · ' + eur(sumBy(arr)) : ''); };
+    $('r-cachets').textContent = part(cachets, 'cachet', 'cachets') + (cashEnc.length ? ' + ' + part(cashEnc, 'date en liquide', 'dates en liquide') : '') + (datesPrev.length ? ' · ' + datesPrev.length + ' prévu' + (datesPrev.length > 1 ? 'es' : 'e') : '');
     var ft = ftFor(y, mo, mv), nextM = MONTHS[(mo + 1) % 12];
     $('r-ft-lab').textContent = 'France Travail pour ' + MONTHS[mo];
     if (!ft) { $('r-ft').textContent = '—'; $('r-ft-note').textContent = 'Allocation journalière inconnue : dis à ton Claude le montant net par jour indiqué par France Travail, et le France Travail attendu se calculera tout seul.'; }
     else {
       var nC = ft.cachets.length, hStd = P('heures_cachet') || 12;
-      var detail = ft.dim + ' j × ' + eur(ft.aj) + ' = ' + eur0(ft.full) + (nC ? ' − ' + nC + (nC > 1 ? ' cachets' : ' cachet') + ' (' + (ft.hours === nC * hStd ? '' : ft.hours + ' h, ') + ft.jNon.toFixed(2).replace('.', ',') + ' j, ' + eur0(ft.cut) + ')' : ', aucun cachet daté') + ' = ' + eur(ft.amt);
+      var nPrev = ft.cachets.filter(function (m) { return !enc(m); }).length;
+      var detail = ft.dim + ' j × ' + eur(ft.aj) + ' = ' + eur0(ft.full) + (nC ? ' − ' + nC + (nC > 1 ? ' cachets déclarés' : ' cachet déclaré') + (nPrev ? ' (dont ' + nPrev + ' prévu' + (nPrev > 1 ? 's' : '') + ')' : '') + ' (' + (ft.hours === nC * hStd ? '' : ft.hours + ' h, ') + ft.jNon.toFixed(2).replace('.', ',') + ' j, ' + eur0(ft.cut) + ')' : ', aucun cachet déclaré daté') + ' = ' + eur(ft.amt) + (ft.cash.length ? '. ' + ft.cash.length + (ft.cash.length > 1 ? ' dates en liquide (' : ' date en liquide (') + eur(sumBy(ft.cash)) + ') non déclarée' + (ft.cash.length > 1 ? 's' : '') + ' : sans effet sur France Travail' : '');
       if (ft.real.length) {
         $('r-ft').textContent = eur(ft.realAmt);
         $('r-ft-note').textContent = (ft.realPrevu ? 'Versement prévu enregistré par ton Claude' : 'Versement reçu') + ' début ' + nextM + ' : ' + eur(ft.realAmt) + '. Calcul de la page pour comparaison : ' + detail + '.' + (Math.abs(ft.realAmt - ft.amt) >= 1 ? ' Écart de ' + eur(Math.abs(ft.realAmt - ft.amt)) + ' : un cachet payé ce mois-là mais joué un autre mois, une déclaration en heures plutôt qu’en cachet, ou une allocation différente ? Dis-le à ton Claude pour qu’il précise la date de prestation.' : '');
@@ -716,7 +720,7 @@ details.det{font-size:13px} details.det summary{cursor:pointer;color:var(--accen
         $('r-ft-note').textContent = 'Aucun versement France Travail enregistré début ' + nextM + '. Attendu d’après tes cachets : ' + detail + '. Dis à ton Claude le montant reçu.';
       } else {
         $('r-ft').textContent = '≈ ' + eur(ft.amt);
-        $('r-ft-note').textContent = 'Attendu début ' + nextM + ' (la date exacte varie) : ' + detail + '. Chaque cachet daté en ' + MONTHS[mo] + ' retire ' + (hStd * ftCoef()).toFixed(2).replace('.', ',') + ' jour, soit ' + eur(hStd * ftCoef() * ft.aj) + ' ; la date qui compte est celle de la prestation, pas celle du paiement (« cachet 245 € reçu le 5, prestation du 18 août »), et si quelqu’un a déclaré des heures plutôt qu’un cachet, dis-le aussi (« déclaré 8 h ») : le calcul suit. Ce montant est déjà compté, en hachuré, dans le graphique et la ligne du solde.';
+        $('r-ft-note').textContent = 'Attendu début ' + nextM + ' (la date exacte varie) : ' + detail + '. Chaque cachet déclaré en ' + MONTHS[mo] + ' retire ' + (hStd * ftCoef()).toFixed(2).replace('.', ',') + ' jour, soit ' + eur(hStd * ftCoef() * ft.aj) + ' ; une date payée en liquide ne retire rien. La date qui compte est celle de la prestation, pas celle du paiement (« cachet 245 € reçu le 5, prestation du 18 août »), et si quelqu’un a déclaré des heures plutôt qu’un cachet, dis-le aussi (« déclaré 8 h ») : le calcul suit. Ce montant est déjà compté, en hachuré, dans le graphique et la ligne du solde.';
       }
     }
     var hours = P('heures_compteur');
@@ -768,6 +772,17 @@ details.det{font-size:13px} details.det summary{cursor:pointer;color:var(--accen
     return P('heures_cachet') || 12;
   }
   function isCachet(m) { return m.sens === 'entree' && !isInternal(m) && catOf(m) === 'cachet'; }
+  // Deux sortes de dates : le cachet déclaré (retire 1,56 j à France Travail) et la date payée en liquide, non déclarée (sans effet).
+  // Champ declare (true/false) s’il existe ; sinon la note (« non déclaré », « au noir » / « déclaré ») ; sinon : payé sur la poche liquide = non déclaré.
+  function isDeclared(m) {
+    if (m.declare === false || m.declare === 'false' || m.declare === 'non') return false;
+    if (m.declare === true || m.declare === 'true' || m.declare === 'oui') return true;
+    var note = String(m.note || '');
+    if (/non\s*d[ée]clar|pas\s*d[ée]clar|au\s*noir|en\s*liquide|en\s*cash/i.test(note)) return false;
+    if (/d[ée]clar/i.test(note)) return true;
+    return accId(m.compte) !== 'liquide';
+  }
+  function isCashDate(m) { return isCachet(m) && !isDeclared(m); }
   // La date qui compte pour France Travail est celle de la prestation, pas celle du paiement (souvent des semaines plus tard).
   // On la prend dans le champ date_prestation, sinon dans une note « prestation du 18/07 », sinon la date du mouvement.
   function cachetGigDate(m) {
@@ -781,12 +796,14 @@ details.det{font-size:13px} details.det summary{cursor:pointer;color:var(--accen
   function ftFor(y, mo, mv) {
     var aj = P('aj'); if (aj == null) return null;
     var dim = new Date(y, mo + 1, 0).getDate(), coef = ftCoef();
-    var cachets = mv.filter(function (m) { if (!isCachet(m)) return false; var g = cachetGigDate(m); return g.getFullYear() === y && g.getMonth() === mo; });
+    var inMonth = function (m) { var g = cachetGigDate(m); return g.getFullYear() === y && g.getMonth() === mo; };
+    var cachets = mv.filter(function (m) { return isCachet(m) && isDeclared(m) && inMonth(m); });
+    var cash = mv.filter(function (m) { return isCashDate(m) && inMonth(m); });
     var hours = cachets.reduce(function (n, m) { return n + cachetHours(m); }, 0);
     var jNon = Math.min(dim, hours * coef), jours = dim - jNon;
     var payDate = new Date(y, mo + 1, 5);
     var real = mv.filter(function (m) { return isFT(m) && m._d.getFullYear() === payDate.getFullYear() && m._d.getMonth() === payDate.getMonth(); });
-    return { y: y, mo: mo, dim: dim, aj: aj, cachets: cachets, hours: hours, jNon: jNon, jours: jours, full: dim * aj, cut: jNon * aj, amt: Math.round(jours * aj * 100) / 100, payDate: payDate, real: real, realAmt: real.reduce(function (n, m) { return n + m._amt; }, 0), realPrevu: real.length > 0 && real.every(function (m) { return (m.statut || 'encaisse') === 'prevu'; }) };
+    return { y: y, mo: mo, dim: dim, aj: aj, cachets: cachets, cash: cash, hours: hours, jNon: jNon, jours: jours, full: dim * aj, cut: jNon * aj, amt: Math.round(jours * aj * 100) / 100, payDate: payDate, real: real, realAmt: real.reduce(function (n, m) { return n + m._amt; }, 0), realPrevu: real.length > 0 && real.every(function (m) { return (m.statut || 'encaisse') === 'prevu'; }) };
   }
 
   // ---------- flux par compte (base du solde et du graphique) ----------
@@ -805,7 +822,7 @@ details.det{font-size:13px} details.det summary{cursor:pointer;color:var(--accen
         if (to) FLOWS.push({ d: m._d, v: m._amt, sens: 'entree', cat: cat, acc: to, hatch: prevu, internal: true, other: from });
         return;
       }
-      FLOWS.push({ d: m._d, v: m._amt, sens: m.sens, cat: catOf(m), acc: from, hatch: prevu, internal: false });
+      FLOWS.push({ d: m._d, v: m._amt, sens: m.sens, cat: catOf(m), acc: from, hatch: prevu, internal: false, cash: isCashDate(m) });
     });
     // charges fixes à venir (non payées), projetées sur 15 mois depuis le compte principal
     var y0 = today.getFullYear(), m0 = today.getMonth();
@@ -922,7 +939,7 @@ details.det{font-size:13px} details.det summary{cursor:pointer;color:var(--accen
     var periods = periodsFor(chartMode, today);
     var horizon = periods[periods.length - 1].end;
     // agrégation par période
-    periods.forEach(function (p) { p.inC = {}; p.outC = {}; p.inT = 0; p.outT = 0; p.inH = 0; p.outH = 0; p.est = {}; });
+    periods.forEach(function (p) { p.inC = {}; p.outC = {}; p.inT = 0; p.outT = 0; p.inH = 0; p.outH = 0; p.est = {}; p.cash = 0; });
     var used = {};
     FLOWS.forEach(function (f) {
       if (!sel[f.acc]) return;
@@ -931,7 +948,7 @@ details.det{font-size:13px} details.det summary{cursor:pointer;color:var(--accen
       for (var i = 0; i < periods.length; i++) {
         var p = periods[i]; if (f.d < p.start || f.d > p.end) continue;
         var bag = f.sens === 'entree' ? p.inC : p.outC; var key = f.cat + (f.hatch ? '~' : '');
-        bag[key] = (bag[key] || 0) + f.v; used[f.cat] = true; if (f.est) p.est[f.cat] = true;
+        bag[key] = (bag[key] || 0) + f.v; used[f.cat] = true; if (f.est) p.est[f.cat] = true; if (f.cash) p.cash += f.v;
         if (f.sens === 'entree') { p.inT += f.v; if (f.hatch) p.inH += f.v; } else { p.outT += f.v; if (f.hatch) p.outH += f.v; }
         break;
       }
@@ -1106,9 +1123,9 @@ details.det{font-size:13px} details.det summary{cursor:pointer;color:var(--accen
   function hideTip() { if (tipEl) tipEl.hidden = true; }
   function tipFor(p, which) {
     var rows = [], tot = 0, bag = which === 'entree' ? p.inC : p.outC;
-    stackOrder(bag).reverse().forEach(function (k) { var a = bag[k] || 0, b = bag[k + '~'] || 0; tot += a + b; rows.push({ k: k, a: a, b: b, est: p.est && p.est[k] }); });
+    stackOrder(bag).reverse().forEach(function (k) { var a = bag[k] || 0, b = bag[k + '~'] || 0; tot += a + b; rows.push({ k: k, a: a, b: b, est: p.est && p.est[k], cash: k === 'cachet' && which === 'entree' ? p.cash : 0 }); });
     var h = '<div class="tip-h"><span>' + p.label + ' · ' + (which === 'entree' ? 'rentré' : 'dépensé') + '</span><b>' + eur(tot) + '</b></div><div class="tip-r"><em>de haut en bas, comme la colonne</em></div>';
-    rows.forEach(function (r) { h += '<div class="tip-r"><i style="background:' + cvar(r.k) + '"></i><span>' + CATS[r.k].e + ' ' + CATS[r.k].l + (r.b ? ' <em>(dont ' + eur(r.b) + (r.est ? ' estimé par la page' : ' prévu') + ')</em>' : '') + '</span><b>' + eur(r.a + r.b) + '</b></div>'; });
+    rows.forEach(function (r) { h += '<div class="tip-r"><i style="background:' + cvar(r.k) + '"></i><span>' + CATS[r.k].e + ' ' + CATS[r.k].l + (r.b ? ' <em>(dont ' + eur(r.b) + (r.est ? ' estimé par la page' : ' prévu') + ')</em>' : '') + (r.cash ? ' <em>(dont ' + eur(r.cash) + ' en liquide, non déclaré)</em>' : '') + '</span><b>' + eur(r.a + r.b) + '</b></div>'; });
     return h;
   }
   function tipNet(p) { return '<div class="tip-h"><span>' + p.label + '</span><b class="' + (p.net >= 0 ? 'good' : 'bad') + '">' + signed(p.net) + '</b></div><div class="tip-r"><span>rentré</span><b>' + eur(p.inT) + '</b></div><div class="tip-r"><span>dépensé</span><b>' + eur(p.outT) + '</b></div>' + (p.future ? '<div class="tip-r"><em>période à venir : prévus et charges fixes à payer</em></div>' : ''); }
@@ -1154,6 +1171,7 @@ details.det{font-size:13px} details.det summary{cursor:pointer;color:var(--accen
     var nat = m.nature;
     if (nat === 'autre') k.appendChild(el('span', 'tag', 'c’est quoi ?'));
     if ((m.statut || '') === 'prevu') k.appendChild(el('span', 'tag acc', 'prévu'));
+    if (isCashDate(m)) k.appendChild(el('span', 'tag', '💵 liquide, non déclaré'));
     if (m.verif) k.appendChild(el('span', 'tag check', 'à vérifier'));
     li.appendChild(k);
     var cls = 'v' + (isIn ? (nat === 'revenu' && (m.statut || '') !== 'prevu' ? ' ok' : ' q') : ' no');
