@@ -224,7 +224,7 @@ details.det{font-size:13px} details.det summary{cursor:pointer;color:var(--accen
 .chips button[aria-pressed="false"]{background:var(--surface);color:var(--muted);border-style:dashed;opacity:.75}
 .chips button .pi{width:22px;height:22px;font-size:12px}
 .chips button small{color:rgba(255,255,255,.85);font-weight:500} .chips button[aria-pressed="false"] small{color:var(--muted)}
-.chart svg{display:block;width:100%;height:auto}
+.chart svg{display:block;width:100%;max-width:620px;height:auto;margin:0 auto}
 .chart svg text{font-family:"IBM Plex Sans",ui-sans-serif,system-ui,sans-serif;font-size:11px;fill:var(--muted);font-variant-numeric:tabular-nums}
 .chart svg text.val{fill:var(--text);font-weight:600;font-size:8.5px}
 .chart svg text.val.in{fill:var(--good)} .chart svg text.val.out{fill:var(--bad)}
@@ -818,8 +818,8 @@ details.det{font-size:13px} details.det summary{cursor:pointer;color:var(--accen
   function periodsFor(mode, today) {
     var list = [], y = today.getFullYear(), mo = today.getMonth();
     if (mode === 'annee') { for (var k = -2; k <= 0; k++) list.push({ start: new Date(y + k, 0, 1), end: new Date(y + k, 11, 31), label: String(y + k) }); }
-    else if (mode === 'mois') { for (var k2 = -5; k2 <= 1; k2++) { var st = new Date(y, mo + k2, 1); list.push({ start: st, end: new Date(st.getFullYear(), st.getMonth() + 1, 0), label: MONTHS_S[st.getMonth()] + (st.getFullYear() !== y ? ' ' + String(st.getFullYear()).slice(2) : '') }); } }
-    else { var wm = monday(today); for (var k3 = -6; k3 <= 1; k3++) { var ws = addDays(wm, 7 * k3); list.push({ start: ws, end: addDays(ws, 6), label: ws.getDate() + ' ' + MONTHS_S[ws.getMonth()] }); } }
+    else if (mode === 'mois') { for (var k2 = -2; k2 <= 1; k2++) { var st = new Date(y, mo + k2, 1); list.push({ start: st, end: new Date(st.getFullYear(), st.getMonth() + 1, 0), label: MONTHS_S[st.getMonth()] + (st.getFullYear() !== y ? ' ' + String(st.getFullYear()).slice(2) : '') }); } }
+    else { var wm = monday(today); for (var k3 = -2; k3 <= 1; k3++) { var ws = addDays(wm, 7 * k3); list.push({ start: ws, end: addDays(ws, 6), label: ws.getDate() + ' ' + MONTHS_S[ws.getMonth()] }); } }
     list.forEach(function (p) { p.end.setHours(23, 59, 59, 999); p.future = p.start > today; p.current = p.start <= today && today <= p.end; });
     return list;
   }
@@ -855,7 +855,7 @@ details.det{font-size:13px} details.det summary{cursor:pointer;color:var(--accen
     });
     periods.forEach(function (p) { p.net = p.inT - p.outT; });
     // ---- barres ----
-    var W = 720, n = periods.length, ml = 6, mr = 6, mt = 22, mb = 26;
+    var n = periods.length, W = Math.max(340, n * 92), ml = 6, mr = 6, mt = 22, mb = 26;
     var posMax = 1, negMax = 0;
     periods.forEach(function (p) { posMax = Math.max(posMax, p.inT, p.outT, p.net); negMax = Math.max(negMax, -p.net); });
     var plotH = 250, posH = plotH * posMax / (posMax + negMax), base = mt + posH, H = mt + plotH + mb;
