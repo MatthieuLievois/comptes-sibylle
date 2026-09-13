@@ -1013,10 +1013,8 @@ details.det{font-size:13px} details.det summary{cursor:pointer;color:var(--accen
   function hideTip() { if (tipEl) tipEl.hidden = true; }
   function tipFor(p, which) {
     var rows = [], tot = 0, bag = which === 'entree' ? p.inC : p.outC;
-    var keys = {}; Object.keys(bag).forEach(function (k) { keys[k.replace('~', '')] = true; });
-    CAT_ORDER.forEach(function (k) { if (!keys[k]) return; var a = bag[k] || 0, b = bag[k + '~'] || 0; tot += a + b; rows.push({ k: k, a: a, b: b }); });
-    rows.sort(function (r1, r2) { return (r2.a + r2.b) - (r1.a + r1.b); });
-    var h = '<div class="tip-h"><span>' + p.label + ' · ' + (which === 'entree' ? 'rentré' : 'dépensé') + '</span><b>' + eur(tot) + '</b></div>';
+    stackOrder(bag).reverse().forEach(function (k) { var a = bag[k] || 0, b = bag[k + '~'] || 0; tot += a + b; rows.push({ k: k, a: a, b: b }); });
+    var h = '<div class="tip-h"><span>' + p.label + ' · ' + (which === 'entree' ? 'rentré' : 'dépensé') + '</span><b>' + eur(tot) + '</b></div><div class="tip-r"><em>de haut en bas, comme la colonne</em></div>';
     rows.forEach(function (r) { h += '<div class="tip-r"><i style="background:' + cvar(r.k) + '"></i><span>' + CATS[r.k].e + ' ' + CATS[r.k].l + (r.b ? ' <em>(dont ' + eur(r.b) + ' prévu)</em>' : '') + '</span><b>' + eur(r.a + r.b) + '</b></div>'; });
     return h;
   }
@@ -1027,15 +1025,18 @@ details.det{font-size:13px} details.det summary{cursor:pointer;color:var(--accen
     node.addEventListener('click', function (e) { e.stopPropagation(); over(e); });
   }
   document.addEventListener('click', hideTip);
+  function stackOrder(bag) { // catégories du plus gros montant au plus petit (plein + prévu)
+    var tot = {}; Object.keys(bag).forEach(function (key) { var k = key.replace('~', ''); tot[k] = (tot[k] || 0) + bag[key]; });
+    return Object.keys(tot).sort(function (a, b) { return tot[b] - tot[a]; });
+  }
   function drawStack(svg, bag, x, base, bw, scale) {
     var y = base;
-    CAT_ORDER.forEach(function (k) {
+    stackOrder(bag).forEach(function (k) { // le plus gros en bas, puis de plus en plus petit vers le haut
       [false, true].forEach(function (hatch) {
         var v = bag[k + (hatch ? '~' : '')]; if (!v) return;
         var h = v * scale; y -= h;
         var r = svgEl('rect', { x: x, y: y, width: bw, height: Math.max(0.8, h) });
         r.setAttribute('fill', hatch ? 'url(#h-' + k + ')' : cvar(k));
-        var title = svgEl('title'); title.textContent = CATS[k].l + (hatch ? ' (prévu)' : '') + ' · ' + eur(v); r.appendChild(title);
         svg.appendChild(r);
       });
     });
