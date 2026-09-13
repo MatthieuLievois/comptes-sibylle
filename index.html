@@ -164,9 +164,9 @@ button{font:inherit; cursor:pointer}
 @media (max-width:520px){ .cal li{grid-template-columns:auto minmax(0,1fr) auto; column-gap:8px} .cal .bal{grid-column:2 / 4; text-align:left; min-width:0} }
 
 /* ---- catégories (validées le 13/09/2026) ---- */
-:root{--c-ft:#1F5FBF;--c-cachet:#7A3E9D;--c-remb:#5B7A99;--c-aide:#C2478A;--c-logement:#B4432B;--c-abo:#D97A12;--c-assur:#2F6B8E;--c-impots:#6E4B2A;--c-courses:#1F8A4C;--c-transp:#0F8C8C;--c-tabac:#B08A00;--c-sante:#D64F5C;--c-loisirs:#8C5BD9;--c-presta:#C22E8A;--c-magie:#2B2350;--c-vir:#9A9AB0;--c-epargne:#0B6E5E;--c-inc:#8A8A9C;--c-liquide:#5E8C1A}
-@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){--c-magie:#6C5FC7;--c-impots:#9C6B3C;--c-assur:#4A8FB8;--c-inc:#7C7C92;--c-remb:#7A9AB8} }
-:root[data-theme="dark"]{--c-magie:#6C5FC7;--c-impots:#9C6B3C;--c-assur:#4A8FB8;--c-inc:#7C7C92;--c-remb:#7A9AB8}
+:root{--c-ft:#1F5FBF;--c-cachet:#5B3FBF;--c-remb:#4F8FB0;--c-aide:#1C9C9C;--c-logement:#C84B31;--c-abo:#E8761B;--c-assur:#7B2D26;--c-impots:#5B3A21;--c-courses:#D9A400;--c-transp:#F0705C;--c-tabac:#8C6A1F;--c-sante:#E0507A;--c-loisirs:#C23FA0;--c-presta:#8F2E6B;--c-magie:#5E1F33;--c-vir:#9A9AB0;--c-epargne:#6F8F8A;--c-inc:#8A8A9C;--c-liquide:#86917A}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){--c-magie:#9A4A6B;--c-impots:#9C6B3C;--c-assur:#B0483F;--c-tabac:#B58A33;--c-inc:#7C7C92;--c-cachet:#8B74E0} }
+:root[data-theme="dark"]{--c-magie:#9A4A6B;--c-impots:#9C6B3C;--c-assur:#B0483F;--c-tabac:#B58A33;--c-inc:#7C7C92;--c-cachet:#8B74E0}
 .pi{display:inline-flex;width:24px;height:24px;border-radius:7px;background:#fff;border:2px solid var(--c);align-items:center;justify-content:center;font-size:13px;flex:none;line-height:1}
 .catchip{display:inline-flex;align-items:center;gap:6px;padding:2px 9px 2px 3px;border-radius:999px;background:var(--c);color:#fff;font-size:12px;font-weight:600;white-space:nowrap;line-height:1}
 .rows .k .pi{width:22px;height:22px;font-size:12px;align-self:center}
@@ -227,6 +227,12 @@ details.det{font-size:13px} details.det summary{cursor:pointer;color:var(--accen
 .legend{display:flex;flex-wrap:wrap;gap:6px 12px;font-size:12.5px;color:var(--muted)}
 .legend span{display:inline-flex;align-items:center;gap:5px}
 .legend .hatchsw{width:18px;height:12px;border-radius:3px;background:repeating-linear-gradient(45deg,var(--faint) 0 2px,transparent 2px 5px);border:1px solid var(--faint)}
+.tip{position:fixed;z-index:50;background:var(--surface);color:var(--text);border:1px solid var(--line-strong);border-radius:10px;box-shadow:var(--shadow);padding:8px 10px;font-size:12.5px;min-width:180px;max-width:min(320px,92vw);pointer-events:none}
+.tip .tip-h{display:flex;justify-content:space-between;gap:12px;font-weight:700;border-bottom:1px solid var(--line);padding-bottom:4px;margin-bottom:4px}
+.tip .tip-h b{font-variant-numeric:tabular-nums} .tip .tip-h b.good{color:var(--good)} .tip .tip-h b.bad{color:var(--bad)}
+.tip .tip-r{display:flex;align-items:center;gap:6px;padding:1.5px 0} .tip .tip-r span{flex:1;min-width:0} .tip .tip-r b{font-variant-numeric:tabular-nums;white-space:nowrap} .tip .tip-r em{color:var(--muted);font-style:normal;font-size:11.5px}
+.tip .tip-r i{width:10px;height:10px;border-radius:3px;flex:none}
+.chart svg g, .chart svg rect{cursor:pointer}
 .foot{font-size:12px; color:var(--faint); line-height:1.5}
 @media (prefers-reduced-motion: reduce){ *{transition:none !important} }
 </style>
@@ -255,24 +261,6 @@ details.det{font-size:13px} details.det summary{cursor:pointer;color:var(--accen
       <span class="when" id="when">…</span>
       <button class="btn ghost small" id="btn-refresh" type="button" title="Recharger">↻</button>
       <button class="btn ghost small" id="btn-lock" type="button" title="Verrouiller sur cet appareil">🔒</button>
-    </div>
-  </div>
-
-  <!-- LES DEUX CHIFFRES -->
-  <div class="hero">
-    <div class="tile idle" id="t-week">
-      <div class="head"><span class="label" id="t-week-label">💳 Ce qu'il te reste cette semaine</span><span class="pill" id="t-week-pill">—</span></div>
-      <div class="big num" id="t-week-big">—</div>
-      <div class="bar" id="t-week-bar"><span style="width:0%"></span></div>
-      <div class="barlab"><span id="t-week-l1"></span><span id="t-week-l2"></span></div>
-      <p class="sub" id="t-week-sub"></p>
-    </div>
-    <div class="tile idle" id="t-month">
-      <div class="head"><span class="label" id="t-month-label">📅 Pour boucler le mois</span><span class="pill" id="t-month-pill">—</span></div>
-      <div class="big num" id="t-month-big">—</div>
-      <div class="bar" id="t-month-bar"><span style="width:0%"></span></div>
-      <div class="barlab"><span id="t-month-l1"></span><span id="t-month-l2"></span></div>
-      <p class="sub" id="t-month-sub"></p>
     </div>
   </div>
 
@@ -801,9 +789,9 @@ details.det{font-size:13px} details.det summary{cursor:pointer;color:var(--accen
   })();
   function periodsFor(mode, today) {
     var list = [], y = today.getFullYear(), mo = today.getMonth();
-    if (mode === 'annee') { for (var k = -2; k <= 1; k++) list.push({ start: new Date(y + k, 0, 1), end: new Date(y + k, 11, 31), label: String(y + k) }); }
-    else if (mode === 'mois') { for (var k2 = -4; k2 <= 3; k2++) { var st = new Date(y, mo + k2, 1); list.push({ start: st, end: new Date(st.getFullYear(), st.getMonth() + 1, 0), label: MONTHS_S[st.getMonth()] + (st.getFullYear() !== y ? ' ' + String(st.getFullYear()).slice(2) : '') }); } }
-    else { var wm = monday(today); for (var k3 = -5; k3 <= 3; k3++) { var ws = addDays(wm, 7 * k3); list.push({ start: ws, end: addDays(ws, 6), label: ws.getDate() + ' ' + MONTHS_S[ws.getMonth()] }); } }
+    if (mode === 'annee') { for (var k = -2; k <= 0; k++) list.push({ start: new Date(y + k, 0, 1), end: new Date(y + k, 11, 31), label: String(y + k) }); }
+    else if (mode === 'mois') { for (var k2 = -5; k2 <= 1; k2++) { var st = new Date(y, mo + k2, 1); list.push({ start: st, end: new Date(st.getFullYear(), st.getMonth() + 1, 0), label: MONTHS_S[st.getMonth()] + (st.getFullYear() !== y ? ' ' + String(st.getFullYear()).slice(2) : '') }); } }
+    else { var wm = monday(today); for (var k3 = -6; k3 <= 1; k3++) { var ws = addDays(wm, 7 * k3); list.push({ start: ws, end: addDays(ws, 6), label: ws.getDate() + ' ' + MONTHS_S[ws.getMonth()] }); } }
     list.forEach(function (p) { p.end.setHours(23, 59, 59, 999); p.future = p.start > today; p.current = p.start <= today && today <= p.end; });
     return list;
   }
@@ -855,14 +843,17 @@ details.det{font-size:13px} details.det summary{cursor:pointer;color:var(--accen
       var x0 = ml + i * gw, cx = x0 + gw / 2;
       if (p.current) svg.appendChild(svgEl('rect', { x: x0 + 1, y: 4, width: gw - 2, height: H - 8, rx: 8, class: 'now' }));
       var xIn = cx - bw * 1.5 - 4, xOut = cx - bw / 2, xNet = cx + bw / 2 + 4;
-      drawStack(svg, p.inC, xIn, base, bw, scale); drawStack(svg, p.outC, xOut, base, bw, scale);
+      var gIn = svgEl('g'), gOut = svgEl('g'); svg.appendChild(gIn); svg.appendChild(gOut);
+      drawStack(gIn, p.inC, xIn, base, bw, scale); drawStack(gOut, p.outC, xOut, base, bw, scale);
+      if (p.inT) attachTip(gIn, function () { return tipFor(p, 'entree'); });
+      if (p.outT) attachTip(gOut, function () { return tipFor(p, 'sortie'); });
       if (p.inT) { var ti = svgEl('text', { x: xIn + bw / 2, y: base - p.inT * scale - 4, 'text-anchor': 'middle', class: 'val' }); ti.textContent = fmtK(p.inT); svg.appendChild(ti); }
       if (p.outT) { var to = svgEl('text', { x: xOut + bw / 2, y: base - p.outT * scale - 4, 'text-anchor': 'middle', class: 'val' }); to.textContent = fmtK(p.outT); svg.appendChild(to); }
       if (p.inT || p.outT) {
         var nh = Math.abs(p.net) * scale, ny = p.net >= 0 ? base - nh : base;
         var nr = svgEl('rect', { x: xNet, y: ny, width: bw, height: Math.max(1.5, nh), rx: 3, fill: p.net >= 0 ? 'var(--good)' : 'var(--bad)' });
         if (p.future || (p.inH + p.outH) > 0.6 * (p.inT + p.outT)) nr.setAttribute('fill-opacity', '0.45');
-        svg.appendChild(nr);
+        svg.appendChild(nr); attachTip(nr, function () { return tipNet(p); });
         var tn = svgEl('text', { x: xNet + bw / 2, y: p.net >= 0 ? ny - 4 : ny + nh + 11, 'text-anchor': 'middle', class: 'val ' + (p.net >= 0 ? 'good' : 'bad') }); tn.textContent = (p.net >= 0 ? '+' : '−') + fmtK(p.net); svg.appendChild(tn);
       }
       var lab = svgEl('text', { x: cx, y: H - 8, 'text-anchor': 'middle', class: 'per' + (p.future ? ' fut' : '') }); lab.textContent = p.label; svg.appendChild(lab);
@@ -904,6 +895,26 @@ details.det{font-size:13px} details.det summary{cursor:pointer;color:var(--accen
     var futNoIn = periods.some(function (p) { return p.future && p.outT > 0; }) && !periods.some(function (p) { return p.future && p.inT > 0; });
     $('chart-note').textContent = (chartSel.length === ACCOUNTS.length ? 'Les quatre sources ensemble : les virements entre tes comptes n’apparaissent pas, l’argent ne fait que changer de poche.' : 'Vue partielle : les virements vers ou depuis les comptes cachés apparaissent en 🔀.') + (futNoIn ? ' Aucune rentrée à venir n’est enregistrée : les périodes futures ne montrent que ce qui va sortir. Dis à ton Claude ce qui est attendu (« France Travail vers le 5 octobre, environ 1 380 € », « cachet 250 € le 18, pas encore payé »).' : '');
   }
+  var tipEl = null;
+  function tip() { if (!tipEl) { tipEl = el('div', 'tip'); tipEl.hidden = true; document.body.appendChild(tipEl); } return tipEl; }
+  function showTip(html, x, y) { var t = tip(); t.innerHTML = html; t.hidden = false; var w = t.offsetWidth, h = t.offsetHeight; var left = Math.min(Math.max(8, x - w / 2), window.innerWidth - w - 8); var top = y - h - 14; if (top < 8) top = y + 18; t.style.left = left + 'px'; t.style.top = top + 'px'; }
+  function hideTip() { if (tipEl) tipEl.hidden = true; }
+  function tipFor(p, which) {
+    var rows = [], tot = 0, bag = which === 'entree' ? p.inC : p.outC;
+    var keys = {}; Object.keys(bag).forEach(function (k) { keys[k.replace('~', '')] = true; });
+    CAT_ORDER.forEach(function (k) { if (!keys[k]) return; var a = bag[k] || 0, b = bag[k + '~'] || 0; tot += a + b; rows.push({ k: k, a: a, b: b }); });
+    rows.sort(function (r1, r2) { return (r2.a + r2.b) - (r1.a + r1.b); });
+    var h = '<div class="tip-h"><span>' + p.label + ' · ' + (which === 'entree' ? 'rentré' : 'dépensé') + '</span><b>' + eur(tot) + '</b></div>';
+    rows.forEach(function (r) { h += '<div class="tip-r"><i style="background:' + cvar(r.k) + '"></i><span>' + CATS[r.k].e + ' ' + CATS[r.k].l + (r.b ? ' <em>(dont ' + eur(r.b) + ' prévu)</em>' : '') + '</span><b>' + eur(r.a + r.b) + '</b></div>'; });
+    return h;
+  }
+  function tipNet(p) { return '<div class="tip-h"><span>' + p.label + '</span><b class="' + (p.net >= 0 ? 'good' : 'bad') + '">' + signed(p.net) + '</b></div><div class="tip-r"><span>rentré</span><b>' + eur(p.inT) + '</b></div><div class="tip-r"><span>dépensé</span><b>' + eur(p.outT) + '</b></div>' + (p.future ? '<div class="tip-r"><em>période à venir : prévus et charges fixes à payer</em></div>' : ''); }
+  function attachTip(node, getHtml) {
+    var over = function (e) { var pt = e.touches ? e.touches[0] : e; showTip(getHtml(), pt.clientX, pt.clientY); };
+    node.addEventListener('mouseenter', over); node.addEventListener('mousemove', over); node.addEventListener('mouseleave', hideTip);
+    node.addEventListener('click', function (e) { e.stopPropagation(); over(e); });
+  }
+  document.addEventListener('click', hideTip);
   function drawStack(svg, bag, x, base, bw, scale) {
     var y = base;
     CAT_ORDER.forEach(function (k) {
@@ -919,6 +930,7 @@ details.det{font-size:13px} details.det summary{cursor:pointer;color:var(--accen
   }
 
   function setTile(tile, cls, pill, big, ratio, subHtml, l1, l2) {
+    if (!tile) return; // les deux tuiles du haut ont été retirées le 13/09 à la demande de Tiphaine ; les calculs restent disponibles
     tile.className = 'tile ' + cls;
     tile.querySelector('.pill').textContent = pill;
     tile.querySelector('.big').textContent = big;
