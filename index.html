@@ -163,6 +163,46 @@ button{font:inherit; cursor:pointer}
 .cal li.neg .bal{color:var(--bad); font-weight:600}
 @media (max-width:520px){ .cal li{grid-template-columns:auto minmax(0,1fr) auto; column-gap:8px} .cal .bal{grid-column:2 / 4; text-align:left; min-width:0} }
 
+/* ---- catégories (validées le 13/09/2026) ---- */
+:root{--c-ft:#1F5FBF;--c-cachet:#7A3E9D;--c-remb:#5B7A99;--c-aide:#C2478A;--c-logement:#B4432B;--c-abo:#D97A12;--c-assur:#2F6B8E;--c-impots:#6E4B2A;--c-courses:#1F8A4C;--c-transp:#0F8C8C;--c-tabac:#B08A00;--c-sante:#D64F5C;--c-loisirs:#8C5BD9;--c-presta:#C22E8A;--c-magie:#2B2350;--c-vir:#9A9AB0;--c-epargne:#0B6E5E;--c-inc:#8A8A9C}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){--c-magie:#6C5FC7;--c-impots:#9C6B3C;--c-assur:#4A8FB8;--c-inc:#7C7C92;--c-remb:#7A9AB8} }
+:root[data-theme="dark"]{--c-magie:#6C5FC7;--c-impots:#9C6B3C;--c-assur:#4A8FB8;--c-inc:#7C7C92;--c-remb:#7A9AB8}
+.pi{display:inline-flex;width:24px;height:24px;border-radius:7px;background:#fff;border:2px solid var(--c);align-items:center;justify-content:center;font-size:13px;flex:none;line-height:1}
+.catchip{display:inline-flex;align-items:center;gap:6px;padding:2px 9px 2px 3px;border-radius:999px;background:var(--c);color:#fff;font-size:12px;font-weight:600;white-space:nowrap;line-height:1}
+.rows .k .pi{width:22px;height:22px;font-size:12px;align-self:center}
+/* ---- solde total ---- */
+.solde .row1{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+.solde .big{font-size:clamp(34px,6vw,50px);line-height:1}
+.solde .big.good{color:var(--good)} .solde .big.bad{color:var(--bad)} .solde .big.idle{color:var(--idle)}
+.delta{font-family:Archivo, ui-sans-serif, system-ui, sans-serif;font-weight:700;font-size:14px;padding:6px 10px;border-radius:999px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.delta.bad{background:var(--bad-bg);color:var(--bad)} .delta.good{background:var(--good-bg);color:var(--good)} .delta.idle{background:var(--idle-bg);color:var(--idle)}
+.accounts{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px}
+.acc{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;padding:8px 10px;border-radius:12px;border:2px solid var(--c);background:var(--surface);min-width:0}
+.acc .pi{width:30px;height:30px;font-size:16px;border-radius:9px}
+.acc b{display:block;font-size:14px} .acc small{color:var(--muted);font-size:11.5px;display:block}
+.acc .amt{font-variant-numeric:tabular-nums;font-weight:700;white-space:nowrap} .acc .amt.no{color:var(--bad)} .acc .amt.q{color:var(--faint);font-weight:500}
+/* ---- vue A : deux colonnes proportionnelles ---- */
+.stackwrap{display:grid;grid-template-columns:1fr auto 1fr;grid-template-rows:300px;gap:10px;align-items:end}
+.scol{display:grid;grid-template-rows:auto 260px;align-items:end;height:300px;min-width:0}
+.coltotal{display:flex;justify-content:space-between;align-items:baseline;padding:0 2px 6px;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--faint)}
+.coltotal b{font-family:Archivo, ui-sans-serif, system-ui, sans-serif;font-size:17px;letter-spacing:0;text-transform:none;color:var(--text);font-variant-numeric:tabular-nums}
+.stack{display:flex;flex-direction:column;border-radius:10px;overflow:hidden;align-self:end;min-height:4px}
+.stack div{display:flex;align-items:center;justify-content:space-between;gap:6px;padding:0 8px;color:#fff;font-size:12.5px;font-weight:600;overflow:hidden}
+.stack div span{display:inline-flex;align-items:center;gap:6px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.stack div small{opacity:.9;font-weight:500;white-space:nowrap;font-variant-numeric:tabular-nums}
+.gap{display:flex;align-items:flex-start;justify-content:center;height:300px;padding-top:44px}
+.aside{display:flex;gap:8px 18px;flex-wrap:wrap;font-size:12.5px;color:var(--muted)}
+.aside span{display:inline-flex;align-items:center;gap:6px}
+/* ---- vue B : barres par catégorie ---- */
+.bars{display:flex;flex-direction:column;gap:8px}
+.cbar{display:grid;grid-template-columns:26px 1fr auto;gap:8px;align-items:center;font-size:13px}
+.cbar .pi{width:26px;height:26px;font-size:14px}
+.cbar .mid{display:flex;flex-direction:column;gap:3px;min-width:0}
+.cbar .lbl{font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cbar .track{height:14px;border-radius:7px;background:var(--surface-2);overflow:hidden}.cbar .track span{display:block;height:100%;background:var(--c);border-radius:7px}
+.cbar .v{font-variant-numeric:tabular-nums;font-weight:600;white-space:nowrap;min-width:96px;text-align:right}.cbar .v small{color:var(--faint);font-weight:500}
+details.det{font-size:13px} details.det summary{cursor:pointer;color:var(--accent);font-weight:600;padding:4px 0;list-style:none} details.det summary::before{content:"▸ "} details.det[open] summary::before{content:"▾ "} details.det .rows{margin-top:6px}
+@media (max-width:520px){ .stackwrap{grid-template-columns:1fr auto 1fr;gap:6px} .gap{padding-top:40px} .stack div{font-size:11.5px;padding:0 6px} }
 .foot{font-size:12px; color:var(--faint); line-height:1.5}
 @media (prefers-reduced-motion: reduce){ *{transition:none !important} }
 </style>
@@ -212,6 +252,14 @@ button{font:inherit; cursor:pointer}
     </div>
   </div>
 
+  <!-- SOLDE TOTAL -->
+  <div class="card solde" id="solde">
+    <h2>💰 Ton solde total aujourd’hui</h2>
+    <div class="row1"><span class="big num idle" id="solde-big">—</span><span class="delta idle" id="solde-delta">—</span></div>
+    <div class="accounts" id="accounts"></div>
+    <p class="note" id="solde-note"></p>
+  </div>
+
   <!-- ALERTE TRÉSORERIE -->
   <div class="alert idle" id="alert">
     <span class="ic" id="alert-ic">🗓️</span>
@@ -222,34 +270,54 @@ button{font:inherit; cursor:pointer}
     </div>
   </div>
 
-  <!-- DÉTAIL -->
+  <!-- VUE A : deux colonnes proportionnelles -->
+  <div class="card" id="viewA">
+    <h2 id="a-title">📊 Rentré et dépensé ce mois-ci</h2>
+    <div class="stackwrap">
+      <div class="scol"><div class="coltotal"><span>Rentré</span><b id="a-in-total">—</b></div><div class="stack" id="a-in"></div></div>
+      <div class="gap"><span class="delta idle" id="a-delta">—</span></div>
+      <div class="scol"><div class="coltotal"><span>Dépensé</span><b id="a-out-total">—</b></div><div class="stack" id="a-out"></div></div>
+    </div>
+    <div class="aside" id="a-aside"></div>
+    <p class="note" id="a-note"></p>
+  </div>
+
+  <!-- VUE B : barres par catégorie -->
   <div class="cols">
     <div class="card">
-      <h2 id="in-title">💰 Entré ce mois-ci</h2>
-      <ul class="rows" id="in-rows"></ul>
-      <div class="total"><span>Revenus certains</span><span class="v" id="in-total">—</span></div>
-      <p class="note" id="in-note"></p>
+      <h2 id="out-title">💸 Dépensé, par catégorie</h2>
+      <div class="bars" id="b-out"></div>
+      <div class="total"><span>Total dépensé</span><span class="v" id="out-total">—</span></div>
+      <details class="det"><summary>Voir chaque ligne</summary><ul class="rows" id="out-rows"></ul></details>
     </div>
     <div class="card">
-      <h2 id="out-title">💸 Sorti ce mois-ci</h2>
-      <ul class="rows" id="out-rows"></ul>
-      <div class="total"><span>Total sorti</span><span class="v" id="out-total">—</span></div>
-      <p class="note" id="out-note"></p>
+      <h2 id="in-title">💰 Rentré, par catégorie</h2>
+      <div class="bars" id="b-in"></div>
+      <div class="total"><span>Revenus certains</span><span class="v" id="in-total">—</span></div>
+      <p class="note" id="in-note"></p>
+      <details class="det"><summary>Voir chaque ligne</summary><ul class="rows" id="in-rows"></ul></details>
     </div>
   </div>
 
   <div class="cols">
+    <div class="card">
+      <h2>🎻🎩 Pro ce mois-ci</h2>
+      <div class="bars" id="pro-bars"></div>
+      <div class="total"><span>Total pro</span><span class="v" id="pro-total">—</span></div>
+      <p class="note">Presta et Magie : hors enveloppe de la semaine, hors dépenses fixes. Ce que ton activité te coûte, à part.</p>
+    </div>
     <div class="card">
       <h2>🏠 Dépenses fixes du mois</h2>
       <ul class="rows" id="fix-rows"></ul>
       <div class="total"><span>Total du mois</span><span class="v" id="fix-total">—</span></div>
       <p class="note" id="fix-note"></p>
     </div>
-    <div class="card">
-      <h2>🕒 Derniers ajouts</h2>
-      <ul class="rows" id="log-rows"></ul>
-      <p class="note" id="log-note"></p>
-    </div>
+  </div>
+
+  <div class="card">
+    <h2>🕒 Derniers ajouts</h2>
+    <ul class="rows" id="log-rows"></ul>
+    <p class="note" id="log-note"></p>
   </div>
 
   <!-- QUESTIONS -->
@@ -281,6 +349,30 @@ button{font:inherit; cursor:pointer}
   var SALT = 'comptes-sibylle:';
   var KEY_STORE = 'comptes-sibylle-key';
   var HOURS_TARGET = 507;
+
+  // ---------- catégories (validées par Sibylle le 13/09/2026) ----------
+  var CATS = {
+    ft: { l: 'France Travail', e: '🏛️', c: 'ft' }, cachet: { l: 'Cachets', e: '🎭', c: 'cachet' }, remb: { l: 'Remboursements', e: '🔁', c: 'remb' }, aide: { l: 'Aide', e: '🤝', c: 'aide' },
+    logement: { l: 'Logement', e: '🏠', c: 'logement' }, abo: { l: 'Abonnements & télécom', e: '📡', c: 'abo' }, assur: { l: 'Assurances & banque', e: '🛡️', c: 'assur' }, impots: { l: 'Impôts', e: '🧾', c: 'impots' },
+    courses: { l: 'Courses & repas', e: '🛒', c: 'courses' }, transp: { l: 'Transports', e: '🚌', c: 'transp' }, tabac: { l: 'Tabac', e: '🚬', c: 'tabac' }, sante: { l: 'Santé', e: '💊', c: 'sante' }, loisirs: { l: 'Plaisirs & divers', e: '🎁', c: 'loisirs' },
+    presta: { l: 'Presta', e: '🎻', c: 'presta' }, magie: { l: 'Magie', e: '🎩', c: 'magie' },
+    vir: { l: 'Virements entre tes comptes', e: '🔀', c: 'vir' }, epargne: { l: 'Épargne', e: '🐷', c: 'epargne' }, inc: { l: 'À classer', e: '❓', c: 'inc' }
+  };
+  var CAT_ALIAS = { france_travail: 'ft', ft: 'ft', cachet: 'cachet', cachets: 'cachet', remboursement_secu: 'remb', defraiement: 'remb', remboursement: 'remb', remb: 'remb', aide: 'aide',
+    loyer: 'logement', logement: 'logement', charges_logement: 'logement', garage: 'logement', telephone: 'abo', internet: 'abo', abonnements: 'abo', abo: 'abo',
+    assurance: 'assur', assur: 'assur', banque: 'assur', mutuelle: 'assur', impots: 'impots', alimentation: 'courses', courses: 'courses', repas: 'courses', transports: 'transp', transport: 'transp', transp: 'transp',
+    tabac: 'tabac', sante: 'sante', loisirs: 'loisirs', plaisirs: 'loisirs', vetements: 'loisirs', presta: 'presta', materiel: 'presta', magie: 'magie', virement: 'vir', vir: 'vir', epargne: 'epargne' };
+  function catOf(m) { // la catégorie saisie d’abord, la nature ensuite, sinon « à classer »
+    var c = String(m.categorie || '').toLowerCase().trim();
+    if (c === 'divers') return m.nature === 'courant' ? 'loisirs' : 'inc';
+    if (c === 'sante') return m.nature === 'charge' ? 'assur' : 'sante';
+    if (CAT_ALIAS[c]) return CAT_ALIAS[c];
+    switch (m.nature) { case 'remboursement': return 'remb'; case 'aide': return 'aide'; case 'virement_interne': return 'vir'; case 'epargne': return 'epargne'; case 'pro': return 'presta'; default: return 'inc'; }
+  }
+  function isPro(m) { var k = catOf(m); return k === 'presta' || k === 'magie' || m.nature === 'pro'; }
+  function isInternal(m) { return m.nature === 'virement_interne' || m.nature === 'epargne'; }
+  function cvar(key) { return 'var(--c-' + (CATS[key] || CATS.inc).c + ')'; }
+  function pi(key) { var k = CATS[key] || CATS.inc; var e = el('span', 'pi', k.e); e.style.setProperty('--c', cvar(key)); e.title = k.l; return e; }
 
   // ---------- helpers ----------
   function $(id) { return document.getElementById(id); }
@@ -427,7 +519,7 @@ button{font:inherit; cursor:pointer}
     var weekMv = mv.filter(function (m) { return inRange(m._d, wStart, wEnd) && enc(m) && m.sens === 'sortie'; });
     var spentWeek = 0, nSpent = 0;
     weekMv.forEach(function (m) {
-      var isCourant = m.nature === 'courant';
+      var isCourant = m.nature === 'courant' && !isPro(m);
       var isVirDep = m.nature === 'virement_interne' && (m.vers || '').toLowerCase() === cptDep.toLowerCase();
       if ((mode === 'virements' && isVirDep) || (mode !== 'virements' && isCourant)) { spentWeek += m._amt; nSpent++; }
     });
@@ -476,31 +568,45 @@ button{font:inherit; cursor:pointer}
 
     // ---- alerte : calendrier de trésorerie ----
     renderCalendar(today, mv, s.charges, monthMv);
+    renderSolde(today, mv, monthMv, cptDep);
 
-    // ---- entrées / sorties ----
-    var inRows = $('in-rows'); inRows.innerHTML = '';
-    var ins = monthMv.filter(function (m) { return m.sens === 'entree'; }).sort(function (a, b) { return a._d - b._d; });
-    if (!ins.length) inRows.appendChild(el('li', 'empty', 'Rien d’encaissé ce mois-ci pour l’instant.'));
-    ins.forEach(function (m) { inRows.appendChild(rowFor(m, true)); });
-    $('in-total').textContent = eur(revCert);
+    // ---- vues A et B : par catégorie (virements et épargne à part) ----
+    var inMv = monthMv.filter(function (m) { return m.sens === 'entree' && enc(m) && !isInternal(m); });
+    var outMv = monthMv.filter(function (m) { return m.sens === 'sortie' && enc(m) && !isInternal(m); });
+    var inTot = sumBy(inMv), outTot = sumBy(outMv), inCats = groupCats(inMv), outCats = groupCats(outMv);
+    $('a-title').textContent = '📊 Rentré et dépensé en ' + MONTHS[mo];
+    $('a-in-total').textContent = eur0(Math.round(inTot)); $('a-out-total').textContent = eur0(Math.round(outTot));
+    var maxTot = Math.max(inTot, outTot, 1);
+    fillStack($('a-in'), inCats, inTot, maxTot); fillStack($('a-out'), outCats, outTot, maxTot);
+    var any = inMv.length || outMv.length, dm = inTot - outTot, ad = $('a-delta');
+    ad.className = 'delta ' + (any ? (dm >= 0 ? 'good' : 'bad') : 'idle'); ad.textContent = any ? signed(dm) : '—';
+    var aside = $('a-aside'); aside.innerHTML = '';
+    var setAside = sumBy(monthMv.filter(function (m) { return m.sens === 'sortie' && enc(m) && m.nature === 'epargne'; }));
+    var moved = sumBy(monthMv.filter(function (m) { return m.sens === 'sortie' && enc(m) && m.nature === 'virement_interne'; }));
+    if (setAside) aside.appendChild(asideItem('epargne', 'mis de côté : ' + eur(setAside)));
+    if (moved) aside.appendChild(asideItem('vir', 'déplacé vers ' + cptDep + ' : ' + eur(moved) + ', toujours à toi'));
+    $('a-note').textContent = !any ? 'Rien ce mois-ci pour l’instant.' : (dm < 0 ? 'La colonne de gauche est plus basse : ce mois-ci, ' + eur(-dm) + ' de plus sont sortis que rentrés.' : 'Ce mois-ci, ' + eur(dm) + ' de plus sont rentrés que sortis. Les virements et l’épargne ne sont pas des dépenses : ils sont comptés à part.');
+
+    fillBars($('b-out'), outCats, outTot); fillBars($('b-in'), inCats, inTot);
+    $('out-title').textContent = '💸 Dépensé en ' + MONTHS[mo] + ', par catégorie';
+    $('in-title').textContent = '💰 Rentré en ' + MONTHS[mo] + ', par catégorie';
+    $('out-total').textContent = eur(outTot); $('in-total').textContent = eur(revCert);
     var inNote = [];
-    if (remb) inNote.push(eur(remb) + ' de remboursements / défraiements : ce n’est pas du revenu, c’est le retour d’une avance.');
-    if (aide) inNote.push(eur(aide) + ' d’aide extérieure, comptée à part.');
-    if (autreIn) inNote.push(eur(autreIn) + ' de nature encore inconnue, non comptés dans les revenus.');
+    if (remb) inNote.push(eur(remb) + ' de remboursements : ce n’est pas du revenu, c’est le retour d’une avance.');
+    if (aide) inNote.push(eur(aide) + ' d’aide, comptée à part.');
+    if (autreIn) inNote.push(eur(autreIn) + ' à classer, non comptés dans les revenus.');
     if (revPrev) inNote.push(eur(revPrev) + ' prévus mais pas encore payés : bonus potentiel, jamais dans le dépensable.');
     $('in-note').textContent = inNote.join(' ');
-    $('in-title').textContent = '💰 Entré en ' + MONTHS[mo];
-
+    var inRows = $('in-rows'); inRows.innerHTML = '';
+    monthMv.filter(function (m) { return m.sens === 'entree'; }).sort(function (a, b) { return a._d - b._d; }).forEach(function (m) { inRows.appendChild(rowFor(m, true)); });
+    if (!inRows.children.length) inRows.appendChild(el('li', 'empty', 'Rien d’encaissé ce mois-ci pour l’instant.'));
     var outRows = $('out-rows'); outRows.innerHTML = '';
-    var outs = monthMv.filter(function (m) { return m.sens === 'sortie' && enc(m); }).sort(function (a, b) { return a._d - b._d; });
-    var outTotal = 0, outByNature = {};
-    outs.forEach(function (m) { outTotal += m._amt; outByNature[m.nature || 'autre'] = (outByNature[m.nature || 'autre'] || 0) + m._amt; });
-    if (!outs.length) outRows.appendChild(el('li', 'empty', 'Rien de sorti ce mois-ci pour l’instant.'));
-    outs.forEach(function (m) { outRows.appendChild(rowFor(m, false)); });
-    $('out-total').textContent = eur(outTotal);
-    var natureLbl = { charge: 'dépenses fixes', courant: 'dépenses courantes', epargne: 'épargne', virement_interne: 'virements entre tes comptes', autre: 'nature inconnue', remboursement: 'remboursements', aide: 'aide', revenu: 'revenu' };
-    $('out-note').textContent = Object.keys(outByNature).map(function (k) { return (natureLbl[k] || k) + ' ' + eur(outByNature[k]); }).join(' · ');
-    $('out-title').textContent = '💸 Sorti en ' + MONTHS[mo];
+    monthMv.filter(function (m) { return m.sens === 'sortie' && enc(m); }).sort(function (a, b) { return a._d - b._d; }).forEach(function (m) { outRows.appendChild(rowFor(m, false)); });
+    if (!outRows.children.length) outRows.appendChild(el('li', 'empty', 'Rien de sorti ce mois-ci pour l’instant.'));
+
+    // ---- pro : Presta et Magie ----
+    var proMv = outMv.filter(isPro), proTot = sumBy(proMv);
+    fillBars($('pro-bars'), groupCats(proMv), proTot); $('pro-total').textContent = eur(proTot);
 
     // ---- charges fixes ----
     var fixRows = $('fix-rows'); fixRows.innerHTML = '';
@@ -511,7 +617,7 @@ button{font:inherit; cursor:pointer}
       var paidAmt = paid.reduce(function (n, m) { return n + m._amt; }, 0);
       var amt = num(c.montant);
       var li = el('li');
-      var k = el('span', 'k'); var b = el('b', null, c.libelle || c.id); k.appendChild(b);
+      var k = el('span', 'k'); k.appendChild(pi(catOf({ categorie: c.categorie, nature: 'charge' }))); var b = el('b', null, c.libelle || c.id); k.appendChild(b);
       if (day) k.appendChild(el('span', 'd', 'le ' + day)); else k.appendChild(el('span', 'tag check', 'jour ?'));
       if (c.periodicite === 'an') k.appendChild(el('span', 'tag', 'annuel'));
       if (paid.length) { k.appendChild(el('span', 'tag ok', 'payée')); paidTotal += paidAmt; }
@@ -562,6 +668,68 @@ button{font:inherit; cursor:pointer}
     $('r-note').textContent = (anniv ? 'Date anniversaire des droits : ' + anniv.getDate() + ' ' + MONTHS[anniv.getMonth()] + ' ' + anniv.getFullYear() + '. ' : '') + (need != null ? 'Il manque environ ' + need + ' cachets de ' + hc + ' h.' : '') + (hp && hp.note ? ' ' + hp.note : '');
   }
 
+  function sumBy(arr) { return arr.reduce(function (n, m) { return n + m._amt; }, 0); }
+  function groupCats(arr) { var g = {}; arr.forEach(function (m) { var k = catOf(m); g[k] = (g[k] || 0) + m._amt; }); return Object.keys(g).map(function (k) { return { k: k, v: g[k] }; }).sort(function (a, b) { return b.v - a.v; }); }
+  function fillStack(elm, cats, tot, maxTot) {
+    elm.innerHTML = ''; elm.style.height = (tot > 0 ? Math.max(3, tot / maxTot * 100) : 3).toFixed(1) + '%';
+    cats.forEach(function (c) {
+      var d = el('div'); d.style.background = cvar(c.k); d.style.flex = String(c.v) + ' 1 0'; d.title = CATS[c.k].l + ' · ' + eur(c.v);
+      if (tot && c.v / tot >= 0.09) { var sp = el('span'); sp.appendChild(pi(c.k)); sp.appendChild(document.createTextNode(CATS[c.k].l)); d.appendChild(sp); d.appendChild(el('small', null, eur0(Math.round(c.v)))); }
+      elm.appendChild(d);
+    });
+    if (!cats.length) { var e = el('div'); e.style.background = 'var(--idle-bg)'; e.style.flex = '1'; e.style.color = 'var(--idle)'; e.style.minHeight = '8px'; elm.appendChild(e); }
+  }
+  function fillBars(elm, cats, tot) {
+    elm.innerHTML = '';
+    var max = cats.length ? cats[0].v : 0;
+    cats.forEach(function (c) {
+      var row = el('div', 'cbar'); row.style.setProperty('--c', cvar(c.k));
+      row.appendChild(pi(c.k));
+      var mid = el('div', 'mid'); mid.appendChild(el('span', 'lbl', CATS[c.k].l));
+      var track = el('div', 'track'); var fill = el('span'); fill.style.width = (max ? c.v / max * 100 : 0).toFixed(1) + '%'; track.appendChild(fill); mid.appendChild(track);
+      row.appendChild(mid);
+      var v = el('span', 'v'); v.appendChild(document.createTextNode(eur(c.v) + ' ')); v.appendChild(el('small', null, tot ? Math.round(c.v / tot * 100) + ' %' : '')); row.appendChild(v);
+      elm.appendChild(row);
+    });
+    if (!cats.length) elm.appendChild(el('div', 'empty', 'Rien ce mois-ci pour l’instant.'));
+  }
+  function asideItem(key, text) { var sp = el('span'); sp.appendChild(pi(key)); sp.appendChild(document.createTextNode(text)); return sp; }
+
+  function renderSolde(today, mv, monthMv, cptDep) {
+    var accEl = $('accounts'); accEl.innerHTML = '';
+    var cptP = PS('compte_principal') || 'CMB';
+    var names = Object.keys(state.params).filter(function (k) { return k.indexOf('solde_') === 0; }).map(function (k) { return k.slice(6); });
+    [cptP, cptDep].forEach(function (n) { if (n && names.indexOf(n) < 0) names.push(n); });
+    var total = 0, missing = 0, known = 0;
+    names.forEach(function (n) {
+      var lower = n.toLowerCase(), p = state.params['solde_' + n], v = P('solde_' + n);
+      var isSav = /livret|epargne|épargne|reserve|réserve/.test(lower), isMain = lower === cptP.toLowerCase();
+      var acc = el('div', 'acc'); acc.style.setProperty('--c', isSav ? 'var(--c-epargne)' : (isMain ? 'var(--c-logement)' : 'var(--c-cachet)'));
+      acc.appendChild(el('span', 'pi', isSav ? '🐷' : (isMain ? '💳' : '📱')));
+      var mid = el('div'); mid.appendChild(el('b', null, n));
+      if (v == null) { mid.appendChild(el('small', null, 'solde inconnu')); acc.appendChild(mid); acc.appendChild(el('span', 'amt q', '?')); accEl.appendChild(acc); missing++; return; }
+      var d = p && p.date ? new Date(p.date) : null, est = v;
+      if (d && !isNaN(d)) {
+        mv.forEach(function (m) {
+          if ((m.statut || 'encaisse') === 'prevu' || !(m._d > d) || m._d > today) return;
+          var from = (m.compte || cptP).toLowerCase() === lower;
+          var to = (m.nature === 'virement_interne' && (m.vers || '').toLowerCase() === lower) || (isSav && m.nature === 'epargne' && m.sens === 'sortie' && !from);
+          if (from) est += (m.sens === 'entree' ? 1 : -1) * m._amt; else if (to) est += m._amt;
+        });
+        mid.appendChild(el('small', null, 'relevé du ' + fmtShort(d) + (Math.abs(est - v) > 0.001 ? ', mouvements depuis inclus' : '')));
+      } else mid.appendChild(el('small', null, 'date du relevé inconnue'));
+      acc.appendChild(mid); acc.appendChild(el('span', 'amt' + (est < 0 ? ' no' : ''), eur(est))); accEl.appendChild(acc);
+      total += est; known++;
+    });
+    var big = $('solde-big'); big.textContent = known ? eur(total) : '—';
+    big.className = 'big num ' + (missing || !known ? 'idle' : (total < 0 ? 'bad' : 'good'));
+    var ins = monthMv.filter(function (m) { return m.sens === 'entree' && (m.statut || 'encaisse') !== 'prevu' && !isInternal(m); });
+    var outs = monthMv.filter(function (m) { return m.sens === 'sortie' && (m.statut || 'encaisse') !== 'prevu' && !isInternal(m); });
+    var any = ins.length || outs.length, dm = sumBy(ins) - sumBy(outs), dEl = $('solde-delta');
+    dEl.className = 'delta ' + (any ? (dm >= 0 ? 'good' : 'bad') : 'idle'); dEl.textContent = (any ? signed(dm) : '—') + ' ce mois-ci';
+    $('solde-note').textContent = missing ? 'Il manque le solde de ' + missing + ' compte' + (missing > 1 ? 's' : '') + ' : le total est incomplet. Dis-le à ton Claude, par exemple « Revolut est à 312 € ce matin ».' : 'Somme de tes comptes, à partir du dernier solde donné pour chacun, plus les mouvements depuis. « Ce mois-ci » = rentré − dépensé, virements et épargne exclus.';
+  }
+
   function setTile(tile, cls, pill, big, ratio, subHtml, l1, l2) {
     tile.className = 'tile ' + cls;
     tile.querySelector('.pill').textContent = pill;
@@ -574,11 +742,11 @@ button{font:inherit; cursor:pointer}
   function rowFor(m, isIn, withDate) {
     var li = el('li');
     var k = el('span', 'k');
+    k.appendChild(pi(catOf(m)));
     var b = el('b', null, m.libelle || m.categorie || '(sans libellé)'); k.appendChild(b);
     k.appendChild(el('span', 'd', fmtShort(m._d)));
     var nat = m.nature;
-    if (isIn && nat && nat !== 'revenu') k.appendChild(el('span', 'tag', { remboursement: 'remboursement', aide: 'aide', autre: 'c’est quoi ?', virement_interne: 'virement' }[nat] || nat));
-    if (!isIn && nat && nat !== 'courant') k.appendChild(el('span', 'tag', { charge: 'fixe', epargne: 'épargne', virement_interne: 'virement', autre: 'c’est quoi ?' }[nat] || nat));
+    if (nat === 'autre') k.appendChild(el('span', 'tag', 'c’est quoi ?'));
     if ((m.statut || '') === 'prevu') k.appendChild(el('span', 'tag acc', 'prévu'));
     if (m.verif) k.appendChild(el('span', 'tag check', 'à vérifier'));
     li.appendChild(k);
