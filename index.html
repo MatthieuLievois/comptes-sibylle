@@ -75,6 +75,10 @@ button{font:inherit; cursor:pointer}
 .topbar h1{font-size:19px; font-weight:700; letter-spacing:-.01em}
 .chip{display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:600; padding:3px 9px; border-radius:999px; background:var(--accent-soft); color:var(--accent)}
 .topbar .right{margin-left:auto; display:flex; gap:8px; align-items:center; flex-wrap:wrap}
+.mnav{display:inline-flex;align-items:center;gap:4px}
+.mnav button{border:1px solid var(--line);background:var(--surface);box-shadow:none;padding:4px 9px;border-radius:8px;font-size:12px;color:var(--muted)}
+.mnav button:disabled{opacity:.35;cursor:default}
+.mnav .chip{font-size:13px;padding:4px 11px;text-transform:capitalize}
 .when{font-size:13px; color:var(--muted); font-variant-numeric:tabular-nums}
 .when.err{color:var(--bad); font-weight:600}
 
@@ -245,6 +249,20 @@ details.det{font-size:13px} details.det summary{cursor:pointer;color:var(--accen
 .tip .tip-r{display:flex;align-items:center;gap:6px;padding:1.5px 0} .tip .tip-r span{flex:1;min-width:0} .tip .tip-r b{font-variant-numeric:tabular-nums;white-space:nowrap} .tip .tip-r em{color:var(--muted);font-style:normal;font-size:11.5px}
 .tip .tip-r i{width:10px;height:10px;border-radius:3px;flex:none}
 .chart svg g, .chart svg rect{cursor:pointer}
+/* ---- listes en bandeaux colorés ---- */
+.rows.colored{gap:4px}
+.rows.colored li{background:var(--c);color:#fff;border-radius:9px;padding:6px 10px 6px 6px;border-bottom:0}
+.rows.colored li.empty{background:transparent;color:var(--faint)}
+.rows.colored .k{color:rgba(255,255,255,.9)} .rows.colored .k b{color:#fff} .rows.colored .d{color:rgba(255,255,255,.8)}
+.rows.colored .v, .rows.colored .v.ok, .rows.colored .v.no{color:#fff} .rows.colored .v.q{color:rgba(255,255,255,.8)}
+.rows.colored .tag{background:rgba(255,255,255,.22);color:#fff;border-color:transparent}
+.rows.colored .tag.check{background:#fff;color:var(--warn)} .rows.colored .tag.ok{background:#fff;color:var(--good)} .rows.colored .tag.acc{background:rgba(255,255,255,.9);color:var(--accent)}
+.rows.colored .pi{background:#fff;border-color:#fff;text-shadow:none}
+.rows.colored li.grp{cursor:pointer;padding:8px 10px 8px 6px;margin-top:6px;font-size:14px}
+.rows.colored li.grp .k b{font-weight:700} .rows.colored li.grp .cnt{font-size:11.5px;color:rgba(255,255,255,.85);font-weight:500}
+.rows.colored li.grp .chev{margin-left:auto;margin-right:8px;opacity:.85;font-size:12px}
+.rows.colored li.item{margin-left:14px;background:color-mix(in srgb, var(--c) 78%, #fff)}
+.rows.colored li.item.hid{display:none}
 .foot{font-size:12px; color:var(--faint); line-height:1.5}
 @media (prefers-reduced-motion: reduce){ *{transition:none !important} }
 </style>
@@ -268,7 +286,7 @@ details.det{font-size:13px} details.det summary{cursor:pointer;color:var(--accen
 
   <div class="topbar">
     <h1>Mon enveloppe hebdo</h1>
-    <span class="chip" id="week-chip">—</span>
+    <div class="mnav" role="group" aria-label="Mois affiché"><button type="button" id="m-prev" aria-label="Mois précédent">◀</button><span class="chip" id="m-label">—</span><button type="button" id="m-next" aria-label="Mois suivant">▶</button></div>
     <div class="right">
       <span class="when" id="when">…</span>
       <button class="btn ghost small" id="btn-refresh" type="button" title="Recharger">↻</button>
@@ -306,27 +324,28 @@ details.det{font-size:13px} details.det summary{cursor:pointer;color:var(--accen
       <h2 id="out-title">💸 Dépensé, par catégorie</h2>
       <div class="bars" id="b-out"></div>
       <div class="total"><span>Total dépensé</span><span class="v" id="out-total">—</span></div>
-      <details class="det"><summary>Voir chaque ligne</summary><ul class="rows" id="out-rows"></ul></details>
+      <details class="det"><summary>Voir chaque ligne</summary><ul class="rows colored" id="out-rows"></ul></details>
     </div>
     <div class="card">
       <h2 id="in-title">💰 Rentré, par catégorie</h2>
       <div class="bars" id="b-in"></div>
       <div class="total"><span>Revenus certains</span><span class="v" id="in-total">—</span></div>
       <p class="note" id="in-note"></p>
-      <details class="det"><summary>Voir chaque ligne</summary><ul class="rows" id="in-rows"></ul></details>
+      <details class="det"><summary>Voir chaque ligne</summary><ul class="rows colored" id="in-rows"></ul></details>
     </div>
   </div>
 
   <div class="cols">
     <div class="card">
       <h2>🏠 Dépenses fixes du mois</h2>
-      <ul class="rows" id="fix-rows"></ul>
+      <ul class="rows colored" id="fix-rows"></ul>
       <div class="total"><span>Total du mois</span><span class="v" id="fix-total">—</span></div>
       <p class="note" id="fix-note"></p>
     </div>
     <div class="card">
-      <h2>🕒 Derniers ajouts</h2>
-      <ul class="rows" id="log-rows"></ul>
+      <div class="chart-head"><h2 id="mv-title">🗓️ Mouvements du mois</h2>
+        <div class="seg" id="seg-mv" role="group" aria-label="Tri"><button type="button" data-v="date">Par date</button><button type="button" data-v="cat">Par catégorie</button></div></div>
+      <ul class="rows colored" id="mv-rows"></ul>
       <p class="note" id="log-note"></p>
     </div>
   </div>
@@ -527,14 +546,17 @@ details.det{font-size:13px} details.det summary{cursor:pointer;color:var(--accen
   function render() {
     var s = state;
     var today = new Date(); today.setHours(0, 0, 0, 0);
-    var y = today.getFullYear(), mo = today.getMonth();
+    var vm = new Date(today.getFullYear(), today.getMonth() + monthOffset, 1);
+    var y = vm.getFullYear(), mo = vm.getMonth();
+    var monthCmp = monthOffset; // <0 passé, 0 en cours, >0 à venir
     var mStart = new Date(y, mo, 1), mEnd = new Date(y, mo + 1, 0);
     var daysInMonth = mEnd.getDate();
     var wStart = monday(today), wEnd = addDays(wStart, 6);
     var weekNo = Math.floor((today.getDate() - 1 + ((mStart.getDay() + 6) % 7)) / 7) + 1;
     var prenom = PS('prenom');
 
-    $('week-chip').textContent = 'Semaine ' + weekNo + ' · ' + fmtDay(wStart) + ' → ' + fmtDay(wEnd);
+    $('m-label').textContent = (monthOffset === 0 ? 'ce mois-ci · ' : '') + MONTHS[mo] + ' ' + y;
+    $('m-next').disabled = monthOffset >= 1;
     if (s.updated) { var u = new Date(s.updated); $('when').textContent = isNaN(u) ? 'mis à jour : ' + s.updated : 'mis à jour ' + fmtShort(u) + ' à ' + pad(u.getHours()) + ':' + pad(u.getMinutes()); }
     else $('when').textContent = 'coffre chargé';
     $('when').className = 'when';
@@ -599,7 +621,7 @@ details.det{font-size:13px} details.det summary{cursor:pointer;color:var(--accen
 
     // ---- alerte : calendrier de trésorerie ----
     buildFlows(today, mv, s.charges);
-    renderSolde(today, monthMv);
+    renderSolde(today, monthMv, monthOffset === 0 ? 'ce mois-ci' : 'en ' + MONTHS[mo]);
     renderChart(today);
 
     // ---- vue B : par catégorie (virements et épargne à part) ----
@@ -631,12 +653,12 @@ details.det{font-size:13px} details.det summary{cursor:pointer;color:var(--accen
       var paid = monthMv.filter(function (m) { return m.sens === 'sortie' && enc(m) && m.charge_id === c.id; });
       var paidAmt = paid.reduce(function (n, m) { return n + m._amt; }, 0);
       var amt = num(c.montant);
-      var li = el('li');
+      var li = el('li'); li.style.setProperty('--c', cvar(catOf({ categorie: c.categorie, nature: 'charge' })));
       var k = el('span', 'k'); k.appendChild(pi(catOf({ categorie: c.categorie, nature: 'charge' }))); var b = el('b', null, c.libelle || c.id); k.appendChild(b);
       if (day) k.appendChild(el('span', 'd', 'le ' + day)); else k.appendChild(el('span', 'tag check', 'jour ?'));
       if (c.periodicite === 'an') k.appendChild(el('span', 'tag', 'annuel'));
       if (paid.length) { k.appendChild(el('span', 'tag ok', 'payée')); paidTotal += paidAmt; }
-      else if (day && day < today.getDate()) k.appendChild(el('span', 'tag', 'pas vue passer'));
+      else if (monthCmp < 0 || (monthCmp === 0 && day && day < today.getDate())) k.appendChild(el('span', 'tag', 'pas vue passer'));
       else k.appendChild(el('span', 'tag acc', 'à venir'));
       if (c.verif && !paid.length) k.appendChild(el('span', 'tag check', 'à vérifier'));
       li.appendChild(k);
@@ -649,11 +671,9 @@ details.det{font-size:13px} details.det summary{cursor:pointer;color:var(--accen
     var monthlyEq = s.charges.filter(function (c) { return chargeIsMonthly(c) && num(c.montant) != null; }).reduce(function (n, c) { return n + num(c.montant); }, 0) + yearly / 12;
     $('fix-note').textContent = 'Payé à ce jour : ' + eur(paidTotal) + '. Équivalent mensuel de toutes les charges, provisions annuelles comprises (÷ 12) : ' + eur(monthlyEq) + '.' + (fixUnknown ? ' ' + fixUnknown + ' montant' + (fixUnknown > 1 ? 's' : '') + ' inconnu' + (fixUnknown > 1 ? 's' : '') + '.' : '');
 
-    // ---- derniers ajouts ----
-    var logRows = $('log-rows'); logRows.innerHTML = '';
-    var recent = mv.slice().sort(function (a, b) { return String(b.cree || b.id).localeCompare(String(a.cree || a.id)); }).slice(0, 6);
-    recent.forEach(function (m) { logRows.appendChild(rowFor(m, m.sens === 'entree', true)); });
-    if (!recent.length) logRows.appendChild(el('li', 'empty', 'Rien pour l’instant.'));
+    // ---- mouvements du mois : par date ou par catégorie ----
+    $('mv-title').textContent = '🗓️ Mouvements ' + (/^[aeiouy]/.test(MONTHS[mo]) ? 'd’' : 'de ') + MONTHS[mo];
+    renderMonthList(monthMv);
     var lastLog = s.log.length ? s.log[s.log.length - 1] : null;
     $('log-note').textContent = lastLog ? (lastLog.msg || '') : '';
 
@@ -755,7 +775,7 @@ details.det{font-size:13px} details.det summary{cursor:pointer;color:var(--accen
     return bal;
   }
 
-  function renderSolde(today, monthMv) {
+  function renderSolde(today, monthMv, whenLabel) {
     var accEl = $('accounts'); accEl.innerHTML = '';
     var total = 0, missing = [], known = 0;
     ACCOUNTS.forEach(function (a) {
@@ -774,7 +794,7 @@ details.det{font-size:13px} details.det summary{cursor:pointer;color:var(--accen
     var ins = monthMv.filter(function (m) { return m.sens === 'entree' && (m.statut || 'encaisse') !== 'prevu' && !isInternal(m); });
     var outs = monthMv.filter(function (m) { return m.sens === 'sortie' && (m.statut || 'encaisse') !== 'prevu' && !isInternal(m); });
     var any = ins.length || outs.length, dm = sumBy(ins) - sumBy(outs), dEl = $('solde-delta');
-    dEl.className = 'delta ' + (any ? (dm >= 0 ? 'good' : 'bad') : 'idle'); dEl.textContent = (any ? signed(dm) : '—') + ' ce mois-ci';
+    dEl.className = 'delta ' + (any ? (dm >= 0 ? 'good' : 'bad') : 'idle'); dEl.textContent = (any ? signed(dm) : '—') + ' ' + (whenLabel || 'ce mois-ci');
     $('solde-note').textContent = missing.length ? 'Il manque ' + (missing.length > 1 ? 'les soldes de ' : 'le solde de ') + missing.join(', ') + ' : le total est incomplet. Dis-le à ton Claude, par exemple « Revolut est à 312 € ce matin ».' : 'Somme de tes quatre sources d’argent, à partir du dernier solde donné pour chacune, plus les mouvements depuis. « Ce mois-ci » = rentré − dépensé, virements et épargne exclus.';
   }
 
@@ -918,6 +938,41 @@ details.det{font-size:13px} details.det summary{cursor:pointer;color:var(--accen
     var futNoIn = periods.some(function (p) { return p.future && p.outT > 0; }) && !periods.some(function (p) { return p.future && p.inT > 0; });
     $('chart-note').textContent = (chartSel.length === ACCOUNTS.length ? 'Les quatre sources ensemble : les virements entre tes comptes n’apparaissent pas, l’argent ne fait que changer de poche.' : 'Vue partielle : les virements vers ou depuis les comptes cachés apparaissent en 🔀.') + (futNoIn ? ' Aucune rentrée à venir n’est enregistrée : les périodes futures ne montrent que ce qui va sortir. Dis à ton Claude ce qui est attendu (« France Travail vers le 5 octobre, environ 1 380 € », « cachet 250 € le 18, pas encore payé »).' : '');
   }
+  var monthOffset = 0; // 0 = mois en cours ; −1 = mois précédent…
+  $('m-prev').addEventListener('click', function () { monthOffset--; if (state) render(); });
+  $('m-next').addEventListener('click', function () { if (monthOffset < 1) { monthOffset++; if (state) render(); } });
+  var mvSort = 'date', mvCollapsed = {};
+  try { var pv = localStorage.getItem('sib-mv-sort'); if (pv === 'date' || pv === 'cat') mvSort = pv; } catch (e) {}
+  var lastMonthMv = [];
+  Array.prototype.forEach.call(document.querySelectorAll('#seg-mv button'), function (btn) {
+    btn.addEventListener('click', function () { mvSort = btn.dataset.v; try { localStorage.setItem('sib-mv-sort', mvSort); } catch (e) {} renderMonthList(lastMonthMv); });
+  });
+  function renderMonthList(monthMv) {
+    lastMonthMv = monthMv;
+    Array.prototype.forEach.call(document.querySelectorAll('#seg-mv button'), function (b) { b.setAttribute('aria-pressed', b.dataset.v === mvSort); });
+    var box = $('mv-rows'); box.innerHTML = '';
+    var list = monthMv.slice();
+    if (!list.length) { box.appendChild(el('li', 'empty', 'Rien ce mois-ci pour l’instant.')); return; }
+    if (mvSort === 'date') {
+      list.sort(function (a, b) { return b._d - a._d || String(b.cree || '').localeCompare(String(a.cree || '')); });
+      list.forEach(function (m) { box.appendChild(rowFor(m, m.sens === 'entree')); });
+      return;
+    }
+    var groups = {};
+    list.forEach(function (m) { var k = catOf(m); (groups[k] = groups[k] || []).push(m); });
+    CAT_ORDER.forEach(function (k) {
+      var items = groups[k]; if (!items) return;
+      items.sort(function (a, b) { return b._d - a._d; });
+      var tot = items.reduce(function (n, m) { return n + (m.sens === 'entree' ? 1 : -1) * m._amt; }, 0);
+      var hdr = el('li', 'grp'); hdr.style.setProperty('--c', cvar(k)); hdr.setAttribute('role', 'button'); hdr.setAttribute('aria-expanded', !mvCollapsed[k]);
+      var kk = el('span', 'k'); kk.appendChild(pi(k)); kk.appendChild(el('b', null, CATS[k].l)); kk.appendChild(el('span', 'cnt', items.length + (items.length > 1 ? ' lignes' : ' ligne'))); hdr.appendChild(kk);
+      hdr.appendChild(el('span', 'chev', mvCollapsed[k] ? '▸' : '▾'));
+      hdr.appendChild(el('span', 'v', (tot >= 0 ? '+ ' : '− ') + eur(Math.abs(tot))));
+      hdr.addEventListener('click', function () { mvCollapsed[k] = !mvCollapsed[k]; renderMonthList(lastMonthMv); });
+      box.appendChild(hdr);
+      items.forEach(function (m) { var li = rowFor(m, m.sens === 'entree'); li.classList.add('item'); if (mvCollapsed[k]) li.classList.add('hid'); box.appendChild(li); });
+    });
+  }
   var tipEl = null;
   function tip() { if (!tipEl) { tipEl = el('div', 'tip'); tipEl.hidden = true; document.body.appendChild(tipEl); } return tipEl; }
   function showTip(html, x, y) { var t = tip(); t.innerHTML = html; t.hidden = false; var w = t.offsetWidth, h = t.offsetHeight; var left = Math.min(Math.max(8, x - w / 2), window.innerWidth - w - 8); var top = y - h - 14; if (top < 8) top = y + 18; t.style.left = left + 'px'; t.style.top = top + 'px'; }
@@ -963,7 +1018,7 @@ details.det{font-size:13px} details.det summary{cursor:pointer;color:var(--accen
   }
 
   function rowFor(m, isIn, withDate) {
-    var li = el('li');
+    var li = el('li'); li.style.setProperty('--c', cvar(catOf(m)));
     var k = el('span', 'k');
     k.appendChild(pi(catOf(m)));
     var b = el('b', null, m.libelle || m.categorie || '(sans libellé)'); k.appendChild(b);
@@ -974,7 +1029,7 @@ details.det{font-size:13px} details.det summary{cursor:pointer;color:var(--accen
     if (m.verif) k.appendChild(el('span', 'tag check', 'à vérifier'));
     li.appendChild(k);
     var cls = 'v' + (isIn ? (nat === 'revenu' && (m.statut || '') !== 'prevu' ? ' ok' : ' q') : ' no');
-    li.appendChild(el('span', cls, (isIn ? '' : '− ') + eur(m._amt)));
+    li.appendChild(el('span', cls, (isIn ? '+ ' : '− ') + eur(m._amt)));
     return li;
   }
 
