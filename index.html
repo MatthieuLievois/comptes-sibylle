@@ -184,7 +184,7 @@ button{font:inherit; cursor:pointer}
 /* ---- vue A : deux colonnes proportionnelles ---- */
 .stackwrap{display:grid;grid-template-columns:1fr auto 1fr;grid-template-rows:300px;gap:10px;align-items:end}
 .scol{display:grid;grid-template-rows:auto 260px;align-items:end;height:300px;min-width:0}
-.coltotal{display:flex;justify-content:space-between;align-items:baseline;padding:0 2px 6px;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--faint)}
+.coltotal{display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding:0 2px 6px;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--faint)}
 .coltotal b{font-family:Archivo, ui-sans-serif, system-ui, sans-serif;font-size:17px;letter-spacing:0;text-transform:none;color:var(--text);font-variant-numeric:tabular-nums}
 .stack{display:flex;flex-direction:column;border-radius:10px;overflow:hidden;align-self:end;min-height:4px}
 .stack div{display:flex;align-items:center;justify-content:space-between;gap:6px;padding:0 8px;color:#fff;font-size:12.5px;font-weight:600;overflow:hidden}
@@ -202,7 +202,8 @@ button{font:inherit; cursor:pointer}
 .cbar .track{height:14px;border-radius:7px;background:var(--surface-2);overflow:hidden}.cbar .track span{display:block;height:100%;background:var(--c);border-radius:7px}
 .cbar .v{font-variant-numeric:tabular-nums;font-weight:600;white-space:nowrap;min-width:96px;text-align:right}.cbar .v small{color:var(--faint);font-weight:500}
 details.det{font-size:13px} details.det summary{cursor:pointer;color:var(--accent);font-weight:600;padding:4px 0;list-style:none} details.det summary::before{content:"▸ "} details.det[open] summary::before{content:"▾ "} details.det .rows{margin-top:6px}
-@media (max-width:520px){ .stackwrap{grid-template-columns:1fr auto 1fr;gap:6px} .gap{padding-top:40px} .stack div{font-size:11.5px;padding:0 6px} }
+.stack em.lbltxt{font-style:normal;overflow:hidden;text-overflow:ellipsis}
+@media (max-width:520px){ .stackwrap{grid-template-columns:1fr auto 1fr;gap:6px} .gap{padding-top:40px} .stack div{font-size:11.5px;padding:0 6px} .stack em.lbltxt{display:none} }
 .foot{font-size:12px; color:var(--faint); line-height:1.5}
 @media (prefers-reduced-motion: reduce){ *{transition:none !important} }
 </style>
@@ -674,7 +675,7 @@ details.det{font-size:13px} details.det summary{cursor:pointer;color:var(--accen
     elm.innerHTML = ''; elm.style.height = (tot > 0 ? Math.max(3, tot / maxTot * 100) : 3).toFixed(1) + '%';
     cats.forEach(function (c) {
       var d = el('div'); d.style.background = cvar(c.k); d.style.flex = String(c.v) + ' 1 0'; d.title = CATS[c.k].l + ' · ' + eur(c.v);
-      if (tot && c.v / tot >= 0.09) { var sp = el('span'); sp.appendChild(pi(c.k)); sp.appendChild(document.createTextNode(CATS[c.k].l)); d.appendChild(sp); d.appendChild(el('small', null, eur0(Math.round(c.v)))); }
+      if (tot && c.v / tot >= 0.09) { var sp = el('span'); sp.appendChild(pi(c.k)); sp.appendChild(el('em', 'lbltxt', CATS[c.k].l)); d.appendChild(sp); d.appendChild(el('small', null, eur0(Math.round(c.v)))); }
       elm.appendChild(d);
     });
     if (!cats.length) { var e = el('div'); e.style.background = 'var(--idle-bg)'; e.style.flex = '1'; e.style.color = 'var(--idle)'; e.style.minHeight = '8px'; elm.appendChild(e); }
