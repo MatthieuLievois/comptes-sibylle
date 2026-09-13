@@ -374,10 +374,10 @@ details.det{font-size:13px} details.det summary{cursor:pointer;color:var(--accen
   }
   // ---------- les quatre sources d’argent ----------
   var ACCOUNTS = [
-    { id: 'cmb_bretagne', l: 'CMB Bretagne', e: '💳', c: 'var(--c-logement)', al: ['cmb', 'cmbb', 'cmbbretagne', 'bretagne', 'cheques', 'chequescmb'] },
-    { id: 'cmb_grenoble', l: 'CMB Grenoble', e: '🏦', c: 'var(--c-assur)', al: ['cmbg', 'cmbgrenoble', 'grenoble'] },
-    { id: 'revolut', l: 'Revolut', e: '📱', c: 'var(--c-cachet)', al: ['revolut', 'revo'] },
-    { id: 'liquide', l: 'Liquide', e: '💵', c: 'var(--c-liquide)', al: ['liquide', 'cash', 'especes', 'espece', 'liquid'] }
+    { id: 'cmb_bretagne', l: 'CMB Bretagne', e: '💳', c: '#2F5170', al: ['cmb', 'cmbb', 'cmbbretagne', 'bretagne', 'cheques', 'chequescmb'] },
+    { id: 'cmb_grenoble', l: 'CMB Grenoble', e: '🏦', c: '#3F9A9B', al: ['cmbg', 'cmbgrenoble', 'grenoble'] },
+    { id: 'revolut', l: 'Revolut', e: '📱', c: '#D2302C', al: ['revolut', 'revo'] },
+    { id: 'liquide', l: 'Liquide', e: '💵', c: '#DDA231', al: ['liquide', 'cash', 'especes', 'espece', 'liquid'] }
   ];
   function accId(name) {
     var n = String(name || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '');
