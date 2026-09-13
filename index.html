@@ -62,7 +62,10 @@ button{font:inherit; cursor:pointer}
 .gate .box{background:var(--surface); border:1px solid var(--line); border-radius:var(--r); box-shadow:var(--shadow); padding:26px 24px; width:min(420px,100%); display:flex; flex-direction:column; gap:14px}
 .gate h1{font-size:22px}
 .gate p{margin:0; color:var(--muted); font-size:14px}
-.gate input[type=password]{font:inherit; font-size:18px; padding:12px 14px; border-radius:10px; border:1px solid var(--line-strong); background:var(--bg); color:var(--text); width:100%}
+.pwdwrap{display:flex; gap:6px; align-items:stretch}
+.pwdwrap input{font:inherit; font-size:18px; padding:12px 14px; border-radius:10px; border:1px solid var(--line-strong); background:var(--bg); color:var(--text); width:100%; min-width:0; letter-spacing:.02em}
+.pwdwrap button{flex:none; width:52px; border-radius:10px; border:1px solid var(--line-strong); background:var(--surface); box-shadow:none; font-size:20px; padding:0}
+.pwdwrap button[aria-pressed="true"]{background:var(--accent-soft); border-color:var(--accent)}
 .gate input:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
 .gate label.rem{display:flex; gap:8px; align-items:center; font-size:14px; color:var(--muted)}
 .btn{border:0; border-radius:10px; padding:12px 16px; font-weight:600; background:var(--accent); color:#fff}
@@ -274,7 +277,7 @@ details.det{font-size:13px} details.det summary{cursor:pointer;color:var(--accen
   <form class="box" id="gate-form">
     <h1>🔒 Mon enveloppe hebdo</h1>
     <p>Cette page ne contient aucun chiffre. Le mot de passe ouvre le coffre où sont tes comptes.</p>
-    <input type="password" id="pwd" placeholder="Mot de passe" autocomplete="current-password" aria-label="Mot de passe" required>
+    <div class="pwdwrap"><input type="password" id="pwd" placeholder="Mot de passe" autocomplete="current-password" aria-label="Mot de passe" required><button type="button" id="pwd-eye" aria-label="Afficher le mot de passe" aria-pressed="false" title="Afficher le mot de passe">👁</button></div>
     <label class="rem"><input type="checkbox" id="remember" checked> Se souvenir sur cet appareil</label>
     <button class="btn" type="submit" id="gate-btn">Ouvrir</button>
     <div class="err" id="gate-err" hidden></div>
@@ -475,6 +478,12 @@ details.det{font-size:13px} details.det summary{cursor:pointer;color:var(--accen
         openApp();
       });
     }).catch(function () { showGateError('Impossible de joindre le coffre. Vérifie ta connexion et réessaie.'); });
+  });
+  $('pwd-eye').addEventListener('click', function () {
+    var inp = $('pwd'), show = inp.type === 'password';
+    inp.type = show ? 'text' : 'password'; this.setAttribute('aria-pressed', show); this.textContent = show ? '🙈' : '👁';
+    this.title = this.getAttribute('aria-label') === (show ? 'Masquer le mot de passe' : 'Afficher le mot de passe') ? this.title : (show ? 'Masquer le mot de passe' : 'Afficher le mot de passe'); this.setAttribute('aria-label', show ? 'Masquer le mot de passe' : 'Afficher le mot de passe');
+    inp.focus();
   });
   function showGateError(msg) { $('gate-err').textContent = msg; $('gate-err').hidden = false; $('gate-btn').disabled = false; }
   function openApp() { gate.hidden = true; app.hidden = false; startPolling(); }
