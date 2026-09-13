@@ -156,12 +156,12 @@ button{font:inherit; cursor:pointer}
 .cal{display:flex; flex-direction:column; gap:0; margin:0; padding:0; list-style:none}
 .cal li{display:grid; grid-template-columns:78px minmax(0,1fr) auto auto; gap:10px; align-items:baseline; padding:6px 0; border-bottom:1px solid var(--line); font-size:13.5px}
 .cal li:last-child{border-bottom:0}
-.cal .d{font-size:12px; color:var(--faint); font-variant-numeric:tabular-nums}
+.cal .d{font-size:12px; color:var(--faint); font-variant-numeric:tabular-nums; white-space:nowrap}
 .cal .lbl{min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
 .cal .amt{font-variant-numeric:tabular-nums; font-weight:600; white-space:nowrap}
 .cal .bal{font-variant-numeric:tabular-nums; color:var(--muted); font-size:12.5px; white-space:nowrap; min-width:80px; text-align:right}
 .cal li.neg .bal{color:var(--bad); font-weight:600}
-@media (max-width:520px){ .cal li{grid-template-columns:62px minmax(0,1fr) auto} .cal .bal{grid-column:2 / 4; text-align:left; min-width:0} }
+@media (max-width:520px){ .cal li{grid-template-columns:auto minmax(0,1fr) auto; column-gap:8px} .cal .bal{grid-column:2 / 4; text-align:left; min-width:0} }
 
 .foot{font-size:12px; color:var(--faint); line-height:1.5}
 @media (prefers-reduced-motion: reduce){ *{transition:none !important} }
@@ -355,6 +355,8 @@ button{font:inherit; cursor:pointer}
           if (m) { cur = m[1]; sec[cur] = []; return; }
           if (cur) sec[cur].push(line);
         });
+        // Une mauvaise clé renvoie des sections vides : ce n'est pas un coffre.
+        if (!(sec.updated || []).join('').trim() && !(sec.params || []).join('').trim()) return false;
         var params = {}, questions = [];
         parseND((sec.params || []).join('\n')).forEach(function (p) {
           if (!p.k) return;
@@ -613,8 +615,8 @@ button{font:inherit; cursor:pointer}
     events.sort(function (a, b) { return a.d - b.d; });
 
     var start = null, startDate = null;
-    if (soldeP && num(soldeP.v) != null) {
-      start = num(soldeP.v); startDate = soldeP.date ? new Date(soldeP.date) : null;
+    if (soldeP && P('solde_' + cptP) != null) {
+      start = P('solde_' + cptP); startDate = soldeP.date ? new Date(soldeP.date) : null;
       if (startDate && !isNaN(startDate)) {
         // mouvements encaissés sur le compte principal après la date du solde
         mv.forEach(function (m) {
