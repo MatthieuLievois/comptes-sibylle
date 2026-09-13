@@ -4,6 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#4338A8">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Mes comptes">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="manifest" href="manifest.webmanifest">
 <title>Mon enveloppe hebdo</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -192,6 +199,7 @@ button{font:inherit; cursor:pointer}
 .acc b{display:block;font-size:14px;color:#fff} .acc small{color:rgba(255,255,255,.85);font-size:11.5px;display:block}
 .acc .sub{grid-column:1 / -1;display:flex;justify-content:space-between;gap:8px;border-top:1px solid rgba(255,255,255,.35);padding-top:5px;margin-top:2px;font-size:12.5px;color:rgba(255,255,255,.92)}
 .acc .sub .q{color:rgba(255,255,255,.7)}
+.acc .sub.total{border-top:2px solid rgba(255,255,255,.7);font-weight:700;font-size:13.5px;color:#fff}
 .acc .amt{font-variant-numeric:tabular-nums;font-weight:700;white-space:nowrap;color:#fff} .acc .amt.no{color:#fff;text-decoration:underline;text-decoration-color:rgba(255,255,255,.6);text-underline-offset:3px} .acc .amt.q{color:rgba(255,255,255,.75);font-weight:500}
 /* ---- vue A : deux colonnes proportionnelles ---- */
 .stackwrap{display:grid;grid-template-columns:1fr auto 1fr;grid-template-rows:300px;gap:10px;align-items:end}
@@ -782,7 +790,8 @@ details.det{font-size:13px} details.det summary{cursor:pointer;color:var(--accen
       var an = anchorOf(a.id);
       var acc = el('div', 'acc'); acc.style.setProperty('--c', a.c);
       acc.appendChild(el('span', 'pi', a.e));
-      var mid = el('div'); mid.appendChild(el('b', null, a.l));
+      var children = ACCOUNTS.filter(function (c) { return c.parent === a.id; });
+      var mid = el('div'); mid.appendChild(el('b', null, a.l + (children.length ? ' · compte courant' : '')));
       var est = null;
       if (!an) { mid.appendChild(el('small', null, 'solde inconnu')); acc.appendChild(mid); acc.appendChild(el('span', 'amt q', '?')); missing.push(a.l); }
       else {
@@ -791,13 +800,18 @@ details.det{font-size:13px} details.det summary{cursor:pointer;color:var(--accen
         acc.appendChild(mid); acc.appendChild(el('span', 'amt' + (est < 0 ? ' no' : ''), eur(est)));
         total += est; known++;
       }
-      ACCOUNTS.filter(function (c) { return c.parent === a.id; }).forEach(function (c) {
+      var cardTotal = est, cardComplete = est != null;
+      children.forEach(function (c) {
         var anc = anchorOf(c.id), sub = el('div', 'sub');
         sub.appendChild(el('span', null, c.e + ' ' + c.l));
-        if (!anc) { sub.appendChild(el('span', 'q', 'solde inconnu')); }
-        else { var ec = balanceAt(c.id, today, false); sub.appendChild(el('span', 'amt', eur(ec))); total += ec; }
+        if (!anc) { sub.appendChild(el('span', 'q', 'solde inconnu')); cardComplete = false; }
+        else { var ec = balanceAt(c.id, today, false); sub.appendChild(el('span', 'amt', eur(ec))); total += ec; cardTotal = (cardTotal || 0) + ec; }
         acc.appendChild(sub);
       });
+      if (children.length) {
+        var tot = el('div', 'sub total'); tot.appendChild(el('span', null, 'Total ' + a.l + (cardComplete ? '' : ' (incomplet)')));
+        tot.appendChild(el('span', 'amt', cardTotal == null ? '?' : eur(cardTotal))); acc.appendChild(tot);
+      }
       accEl.appendChild(acc);
     });
     var big = $('solde-big'); big.textContent = known ? eur(total) : '—';
