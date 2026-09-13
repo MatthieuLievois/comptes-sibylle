@@ -376,11 +376,13 @@ details.det{font-size:13px} details.det summary{cursor:pointer;color:var(--accen
     <div class="item"><span class="eyebrow">Allocation / jour</span><span class="val num" id="r-aj">—</span></div>
     <div class="item"><span class="eyebrow">Un cachet coûte</span><span class="val num" id="r-cost">—</span></div>
     <div class="item"><span class="eyebrow">Cachets encaissés ce mois</span><span class="val num" id="r-cachets">—</span></div>
+    <div class="item"><span class="eyebrow" id="r-ft-lab">France Travail attendu</span><span class="val num" id="r-ft">—</span></div>
     <div class="grow">
       <div class="barlab"><span class="eyebrow">Heures pour renouveler les droits</span><span id="r-hours-lab">—</span></div>
       <div class="bar" style="color:var(--accent)"><span id="r-hours-bar" style="width:0%"></span></div>
       <span class="note" id="r-note"></span>
     </div>
+    <p class="note" id="r-ft-note" style="flex-basis:100%"></p>
   </div>
 
   <p class="foot" id="foot">Tout ce qui est chiffré ici vient du coffre, rempli par ton Claude au fil de ce que tu lui dis. Les cases marquées <span class="tag check">à vérifier</span> sont des montants réels dont la nature ou l'exactitude n'est pas confirmée. Aucun montant n'est inventé : une case vide veut dire « je ne l'ai pas ».</p>
@@ -698,8 +700,25 @@ details.det{font-size:13px} details.det summary{cursor:pointer;color:var(--accen
     var coef = annexe === 'VIII' ? 1.4 / 8 : 1.3 / 10;
     $('r-aj').textContent = aj != null ? ((s.params.aj && s.params.aj.verif) ? '≈ ' : '') + eur(aj) : '—';
     $('r-cost').textContent = aj != null ? (hc * coef).toFixed(2).replace('.', ',') + ' j = ' + eur0(hc * coef * aj) : (hc * coef).toFixed(2).replace('.', ',') + ' jour d’allocation';
-    var cachets = monthMv.filter(function (m) { return m.sens === 'entree' && m.categorie === 'cachet' && enc(m); });
+    var cachets = monthMv.filter(function (m) { return isCachet(m) && enc(m); });
     $('r-cachets').textContent = cachets.length + (cachets.length > 1 ? ' cachets' : ' cachet') + (cachets.length ? ' · ' + eur(cachets.reduce(function (n, m) { return n + m._amt; }, 0)) : '');
+    var ft = ftFor(y, mo, mv), nextM = MONTHS[(mo + 1) % 12];
+    $('r-ft-lab').textContent = 'France Travail pour ' + MONTHS[mo];
+    if (!ft) { $('r-ft').textContent = '—'; $('r-ft-note').textContent = 'Allocation journalière inconnue : dis à ton Claude le montant net par jour indiqué par France Travail, et le France Travail attendu se calculera tout seul.'; }
+    else {
+      var nC = ft.cachets.length, hStd = P('heures_cachet') || 12;
+      var detail = ft.dim + ' j × ' + eur(ft.aj) + ' = ' + eur0(ft.full) + (nC ? ' − ' + nC + (nC > 1 ? ' cachets' : ' cachet') + ' (' + (ft.hours === nC * hStd ? '' : ft.hours + ' h, ') + ft.jNon.toFixed(2).replace('.', ',') + ' j, ' + eur0(ft.cut) + ')' : ', aucun cachet daté') + ' = ' + eur(ft.amt);
+      if (ft.real.length) {
+        $('r-ft').textContent = eur(ft.realAmt);
+        $('r-ft-note').textContent = (ft.realPrevu ? 'Versement prévu enregistré par ton Claude' : 'Versement reçu') + ' début ' + nextM + ' : ' + eur(ft.realAmt) + '. Calcul de la page pour comparaison : ' + detail + '.' + (Math.abs(ft.realAmt - ft.amt) >= 1 ? ' Écart de ' + eur(Math.abs(ft.realAmt - ft.amt)) + ' : un cachet payé ce mois-là mais joué un autre mois, une déclaration en heures plutôt qu’en cachet, ou une allocation différente ? Dis-le à ton Claude pour qu’il précise la date de prestation.' : '');
+      } else if (ft.payDate <= today) {
+        $('r-ft').textContent = '—';
+        $('r-ft-note').textContent = 'Aucun versement France Travail enregistré début ' + nextM + '. Attendu d’après tes cachets : ' + detail + '. Dis à ton Claude le montant reçu.';
+      } else {
+        $('r-ft').textContent = '≈ ' + eur(ft.amt);
+        $('r-ft-note').textContent = 'Attendu début ' + nextM + ' (la date exacte varie) : ' + detail + '. Chaque cachet daté en ' + MONTHS[mo] + ' retire ' + (hStd * ftCoef()).toFixed(2).replace('.', ',') + ' jour, soit ' + eur(hStd * ftCoef() * ft.aj) + ' ; la date qui compte est celle de la prestation, pas celle du paiement (« cachet 245 € reçu le 5, prestation du 18 août »), et si quelqu’un a déclaré des heures plutôt qu’un cachet, dis-le aussi (« déclaré 8 h ») : le calcul suit. Ce montant est déjà compté, en hachuré, dans le graphique et la ligne du solde.';
+      }
+    }
     var hours = P('heures_compteur');
     var hp = s.params.heures_compteur;
     if (hours != null) {
@@ -738,6 +757,38 @@ details.det{font-size:13px} details.det summary{cursor:pointer;color:var(--accen
   }
   function asideItem(key, text) { var sp = el('span'); sp.appendChild(pi(key)); sp.appendChild(document.createTextNode(text)); return sp; }
 
+  // ---------- France Travail attendu ----------
+  // Annexe X : chaque heure déclarée retire 1,3/10 de jour d’allocation ; un cachet de 12 h = 1,56 jour.
+  function ftCoef() { return (PS('annexe') || 'X') === 'VIII' ? 1.4 / 8 : 1.3 / 10; }
+  function cachetHours(m) { // 12 h par défaut ; sinon le champ heures, ou une note « déclaré 8 h »
+    var h = num(m.heures) != null ? num(m.heures) : (typeof m.heures === 'string' ? parseFloat(m.heures.replace(',', '.')) : NaN);
+    if (isFinite(h) && h > 0) return h;
+    var note = String(m.note || '');
+    if (/d[ée]clar/i.test(note)) { var mm = note.match(/(\d+(?:[.,]\d+)?)\s*(?:h\b|heures?)/i); if (mm) { var v = parseFloat(mm[1].replace(',', '.')); if (isFinite(v) && v > 0) return v; } }
+    return P('heures_cachet') || 12;
+  }
+  function isCachet(m) { return m.sens === 'entree' && !isInternal(m) && catOf(m) === 'cachet'; }
+  // La date qui compte pour France Travail est celle de la prestation, pas celle du paiement (souvent des semaines plus tard).
+  // On la prend dans le champ date_prestation, sinon dans une note « prestation du 18/07 », sinon la date du mouvement.
+  function cachetGigDate(m) {
+    var d = parseDate(m.date_prestation); if (d) return d;
+    var mm = String(m.note || '').match(/(?:presta\w*|jou[ée]e?|date)\D{0,8}(\d{1,2})[\/.](\d{1,2})(?:[\/.](\d{4}))?/i);
+    if (mm) { var y = mm[3] ? +mm[3] : m._d.getFullYear(); d = new Date(y, +mm[2] - 1, +mm[1]); if (!mm[3] && d > m._d) d.setFullYear(y - 1); if (!isNaN(d)) return d; }
+    return m._d;
+  }
+  function isFT(m) { return m.sens === 'entree' && !isInternal(m) && catOf(m) === 'ft'; }
+  // Estimation pour le mois (y, mo), versée début du mois suivant. Renvoie null si l’allocation journalière est inconnue.
+  function ftFor(y, mo, mv) {
+    var aj = P('aj'); if (aj == null) return null;
+    var dim = new Date(y, mo + 1, 0).getDate(), coef = ftCoef();
+    var cachets = mv.filter(function (m) { if (!isCachet(m)) return false; var g = cachetGigDate(m); return g.getFullYear() === y && g.getMonth() === mo; });
+    var hours = cachets.reduce(function (n, m) { return n + cachetHours(m); }, 0);
+    var jNon = Math.min(dim, hours * coef), jours = dim - jNon;
+    var payDate = new Date(y, mo + 1, 5);
+    var real = mv.filter(function (m) { return isFT(m) && m._d.getFullYear() === payDate.getFullYear() && m._d.getMonth() === payDate.getMonth(); });
+    return { y: y, mo: mo, dim: dim, aj: aj, cachets: cachets, hours: hours, jNon: jNon, jours: jours, full: dim * aj, cut: jNon * aj, amt: Math.round(jours * aj * 100) / 100, payDate: payDate, real: real, realAmt: real.reduce(function (n, m) { return n + m._amt; }, 0), realPrevu: real.length > 0 && real.every(function (m) { return (m.statut || 'encaisse') === 'prevu'; }) };
+  }
+
   // ---------- flux par compte (base du solde et du graphique) ----------
   // Chaque flux : { d, v (positif), sens, cat, acc, hatch (prévu ou projeté), proj }
   var FLOWS = [];
@@ -768,6 +819,9 @@ details.det{font-size:13px} details.det summary{cursor:pointer;color:var(--accen
         if (paid) return;
         FLOWS.push({ d: d, v: amt, sens: 'sortie', cat: catOf({ categorie: c.categorie, nature: 'charge' }), acc: main, hatch: true, proj: true, internal: false });
       });
+      // France Travail attendu pour ce mois, versé début du mois suivant, sauf si un versement est déjà enregistré (encaissé ou prévu)
+      var ft = ftFor(y, mo, mv);
+      if (ft && ft.amt > 0 && ft.payDate > today && !ft.real.length) FLOWS.push({ d: ft.payDate, v: ft.amt, sens: 'entree', cat: 'ft', acc: main, hatch: true, proj: true, est: true, internal: false });
     }
   }
   function balanceAt(id, T, withFuture) { // solde estimé d’un compte à la fin du jour T
@@ -868,7 +922,7 @@ details.det{font-size:13px} details.det summary{cursor:pointer;color:var(--accen
     var periods = periodsFor(chartMode, today);
     var horizon = periods[periods.length - 1].end;
     // agrégation par période
-    periods.forEach(function (p) { p.inC = {}; p.outC = {}; p.inT = 0; p.outT = 0; p.inH = 0; p.outH = 0; });
+    periods.forEach(function (p) { p.inC = {}; p.outC = {}; p.inT = 0; p.outT = 0; p.inH = 0; p.outH = 0; p.est = {}; });
     var used = {};
     FLOWS.forEach(function (f) {
       if (!sel[f.acc]) return;
@@ -877,7 +931,7 @@ details.det{font-size:13px} details.det summary{cursor:pointer;color:var(--accen
       for (var i = 0; i < periods.length; i++) {
         var p = periods[i]; if (f.d < p.start || f.d > p.end) continue;
         var bag = f.sens === 'entree' ? p.inC : p.outC; var key = f.cat + (f.hatch ? '~' : '');
-        bag[key] = (bag[key] || 0) + f.v; used[f.cat] = true;
+        bag[key] = (bag[key] || 0) + f.v; used[f.cat] = true; if (f.est) p.est[f.cat] = true;
         if (f.sens === 'entree') { p.inT += f.v; if (f.hatch) p.inH += f.v; } else { p.outT += f.v; if (f.hatch) p.outH += f.v; }
         break;
       }
@@ -962,7 +1016,7 @@ details.det{font-size:13px} details.det summary{cursor:pointer;color:var(--accen
     var hs = el('span', 'legrow small hatch'); hs.appendChild(el('i', 'hatchsw')); hs.appendChild(el('span', null, 'hachuré = prévu, pas encore passé')); neutral.appendChild(hs);
     leg.appendChild(neutral);
     var futNoIn = periods.some(function (p) { return p.future && p.outT > 0; }) && !periods.some(function (p) { return p.future && p.inT > 0; });
-    $('chart-note').textContent = (chartSel.length === TOP_ACCOUNTS.length ? 'Les quatre poches ensemble. Les virements et retraits entre elles ne sont ni des rentrées ni des dépenses : ils déplacent l’argent d’une carte à l’autre, en haut.' : 'Vue partielle : seuls les mouvements des poches affichées sont comptés. Les virements et retraits entre tes quatre poches n’apparaissent jamais ici.') + (futNoIn ? ' Aucune rentrée à venir n’est enregistrée : les périodes futures ne montrent que ce qui va sortir. Dis à ton Claude ce qui est attendu (« France Travail vers le 5 octobre, environ 1 380 € », « cachet 250 € le 18, pas encore payé »).' : '');
+    $('chart-note').textContent = (chartSel.length === TOP_ACCOUNTS.length ? 'Les quatre poches ensemble. Les virements et retraits entre elles ne sont ni des rentrées ni des dépenses : ils déplacent l’argent d’une carte à l’autre, en haut.' : 'Vue partielle : seuls les mouvements des poches affichées sont comptés. Les virements et retraits entre tes quatre poches n’apparaissent jamais ici.') + (futNoIn ? ' Aucune rentrée à venir n’est enregistrée : les périodes futures ne montrent que ce qui va sortir. Dis à ton Claude ce qui est attendu (« cachet 250 € le 18, pas encore payé »).' : '') + (FLOWS.some(function (f) { return f.est && f.d <= horizon; }) ? ' Le France Travail à venir est estimé par la page : jours du mois × allocation, moins 1,56 jour par cachet daté (détail dans le bandeau des droits, en bas).' : '');
   }
   // ---- dépenses fixes : par date ou par catégorie ----
   var fixSort = 'date', fixCollapsed = {}, fixCtx = null;
@@ -1052,9 +1106,9 @@ details.det{font-size:13px} details.det summary{cursor:pointer;color:var(--accen
   function hideTip() { if (tipEl) tipEl.hidden = true; }
   function tipFor(p, which) {
     var rows = [], tot = 0, bag = which === 'entree' ? p.inC : p.outC;
-    stackOrder(bag).reverse().forEach(function (k) { var a = bag[k] || 0, b = bag[k + '~'] || 0; tot += a + b; rows.push({ k: k, a: a, b: b }); });
+    stackOrder(bag).reverse().forEach(function (k) { var a = bag[k] || 0, b = bag[k + '~'] || 0; tot += a + b; rows.push({ k: k, a: a, b: b, est: p.est && p.est[k] }); });
     var h = '<div class="tip-h"><span>' + p.label + ' · ' + (which === 'entree' ? 'rentré' : 'dépensé') + '</span><b>' + eur(tot) + '</b></div><div class="tip-r"><em>de haut en bas, comme la colonne</em></div>';
-    rows.forEach(function (r) { h += '<div class="tip-r"><i style="background:' + cvar(r.k) + '"></i><span>' + CATS[r.k].e + ' ' + CATS[r.k].l + (r.b ? ' <em>(dont ' + eur(r.b) + ' prévu)</em>' : '') + '</span><b>' + eur(r.a + r.b) + '</b></div>'; });
+    rows.forEach(function (r) { h += '<div class="tip-r"><i style="background:' + cvar(r.k) + '"></i><span>' + CATS[r.k].e + ' ' + CATS[r.k].l + (r.b ? ' <em>(dont ' + eur(r.b) + (r.est ? ' estimé par la page' : ' prévu') + ')</em>' : '') + '</span><b>' + eur(r.a + r.b) + '</b></div>'; });
     return h;
   }
   function tipNet(p) { return '<div class="tip-h"><span>' + p.label + '</span><b class="' + (p.net >= 0 ? 'good' : 'bad') + '">' + signed(p.net) + '</b></div><div class="tip-r"><span>rentré</span><b>' + eur(p.inT) + '</b></div><div class="tip-r"><span>dépensé</span><b>' + eur(p.outT) + '</b></div>' + (p.future ? '<div class="tip-r"><em>période à venir : prévus et charges fixes à payer</em></div>' : ''); }
