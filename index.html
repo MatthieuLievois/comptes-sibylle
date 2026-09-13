@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Mon enveloppe hebdo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --bg:#F3F3F8; --surface:#FFFFFF; --surface-2:#ECECF3;
+  --line:#DCDCE7; --line-strong:#C3C3D3;
+  --text:#1A1A22; --muted:#5D5D70; --faint:#8A8A9C;
+  --accent:#4338A8; --accent-soft:#E7E5F7;
+  --good:#166F45; --good-bg:#E1F1E8; --good-line:#93CBAF;
+  --warn:#95530A; --warn-bg:#FBEEDC; --warn-line:#DFAE70;
+  --bad:#A61F17;  --bad-bg:#FAE3E0;  --bad-line:#E09A91;
+  --idle:#4A4A5C; --idle-bg:#E8E8F0; --idle-line:#C5C5D5;
+  --shadow:0 1px 2px rgba(26,26,34,.05), 0 8px 22px rgba(26,26,34,.06);
+  --r:14px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#111117; --surface:#1B1B24; --surface-2:#242430;
+    --line:#2E2E3D; --line-strong:#3F3F52;
+    --text:#EDEDF4; --muted:#A2A2B6; --faint:#7C7C92;
+    --accent:#A99EF6; --accent-soft:#272247;
+    --good:#5FCB93; --good-bg:#13301F; --good-line:#2D6748;
+    --warn:#EAA84F; --warn-bg:#3A2A11; --warn-line:#6E5220;
+    --bad:#F58278;  --bad-bg:#3B1B18;  --bad-line:#71322C;
+    --idle:#B4B4C6; --idle-bg:#25252F; --idle-line:#3A3A4A;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 22px rgba(0,0,0,.34);
+  }
+}
+:root[data-theme="dark"]{
+    --bg:#111117; --surface:#1B1B24; --surface-2:#242430;
+    --line:#2E2E3D; --line-strong:#3F3F52;
+    --text:#EDEDF4; --muted:#A2A2B6; --faint:#7C7C92;
+    --accent:#A99EF6; --accent-soft:#272247;
+    --good:#5FCB93; --good-bg:#13301F; --good-line:#2D6748;
+    --warn:#EAA84F; --warn-bg:#3A2A11; --warn-line:#6E5220;
+    --bad:#F58278;  --bad-bg:#3B1B18;  --bad-line:#71322C;
+    --idle:#B4B4C6; --idle-bg:#25252F; --idle-line:#3A3A4A;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 22px rgba(0,0,0,.34);
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg); color:var(--text);
+  font-family:"IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  font-size:15px; line-height:1.45; -webkit-font-smoothing:antialiased}
+.wrap{max-width:1060px; margin:0 auto; padding:22px 18px 60px; display:flex; flex-direction:column; gap:22px}
+h1,h2,h3{font-family:Archivo, ui-sans-serif, system-ui, sans-serif; margin:0; text-wrap:balance}
+.num{font-family:Archivo, ui-sans-serif, system-ui, sans-serif; font-variant-numeric:tabular-nums; font-weight:700; letter-spacing:-.02em}
+.eyebrow{font-size:11px; font-weight:600; letter-spacing:.09em; text-transform:uppercase; color:var(--faint)}
+button{font:inherit; cursor:pointer}
+[hidden]{display:none !important}
+
+/* ---- gate ---- */
+.gate{min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px}
+.gate .box{background:var(--surface); border:1px solid var(--line); border-radius:var(--r); box-shadow:var(--shadow); padding:26px 24px; width:min(420px,100%); display:flex; flex-direction:column; gap:14px}
+.gate h1{font-size:22px}
+.gate p{margin:0; color:var(--muted); font-size:14px}
+.gate input[type=password]{font:inherit; font-size:18px; padding:12px 14px; border-radius:10px; border:1px solid var(--line-strong); background:var(--bg); color:var(--text); width:100%}
+.gate input:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+.gate label.rem{display:flex; gap:8px; align-items:center; font-size:14px; color:var(--muted)}
+.btn{border:0; border-radius:10px; padding:12px 16px; font-weight:600; background:var(--accent); color:#fff}
+.btn.ghost{background:var(--surface-2); color:var(--text); border:1px solid var(--line)}
+.btn.small{padding:6px 10px; font-size:13px; border-radius:8px}
+.gate .err{color:var(--bad); font-size:14px; font-weight:600}
+
+/* ---- top bar ---- */
+.topbar{display:flex; flex-wrap:wrap; align-items:center; gap:10px 14px; padding-bottom:6px; border-bottom:1px solid var(--line)}
+.topbar h1{font-size:19px; font-weight:700; letter-spacing:-.01em}
+.chip{display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:600; padding:3px 9px; border-radius:999px; background:var(--accent-soft); color:var(--accent)}
+.topbar .right{margin-left:auto; display:flex; gap:8px; align-items:center; flex-wrap:wrap}
+.when{font-size:13px; color:var(--muted); font-variant-numeric:tabular-nums}
+.when.err{color:var(--bad); font-weight:600}
+
+/* ---- hero ---- */
+.hero{display:grid; grid-template-columns:1fr 1fr; gap:16px}
+@media (max-width:760px){ .hero{grid-template-columns:1fr} }
+.tile{border-radius:var(--r); padding:20px 20px 18px; display:flex; flex-direction:column; gap:12px; box-shadow:var(--shadow); border:1px solid}
+.tile.idle{background:var(--idle-bg); border-color:var(--idle-line)}
+.tile.good{background:var(--good-bg); border-color:var(--good-line)}
+.tile.warn{background:var(--warn-bg); border-color:var(--warn-line)}
+.tile.bad {background:var(--bad-bg);  border-color:var(--bad-line)}
+.tile .head{display:flex; align-items:center; justify-content:space-between; gap:10px}
+.tile .label{font-size:13px; font-weight:600; opacity:.85}
+.tile .big{font-size:clamp(40px,6.6vw,58px); line-height:1; display:flex; align-items:baseline; gap:8px; flex-wrap:wrap}
+.tile .big small{font-size:.32em; font-weight:500; letter-spacing:0; opacity:.8}
+.tile.idle .big{color:var(--idle)} .tile.good .big{color:var(--good)}
+.tile.warn .big{color:var(--warn)} .tile.bad  .big{color:var(--bad)}
+.tile .sub{font-size:13px; color:var(--muted); line-height:1.45; margin:0}
+.tile .sub strong{color:var(--text); font-weight:600}
+.pill{font-size:11px; font-weight:600; letter-spacing:.04em; text-transform:uppercase; padding:4px 9px; border-radius:999px; white-space:nowrap}
+.tile.idle .pill{background:var(--idle); color:var(--idle-bg)}
+.tile.good .pill{background:var(--good); color:var(--good-bg)}
+.tile.warn .pill{background:var(--warn); color:var(--warn-bg)}
+.tile.bad  .pill{background:var(--bad);  color:var(--bad-bg)}
+.bar{height:9px; border-radius:99px; background:rgba(125,125,150,.22); overflow:hidden; display:flex}
+.bar > span{display:block; height:100%; background:currentColor}
+.barlab{display:flex; justify-content:space-between; gap:10px; font-size:12px; color:var(--muted); font-variant-numeric:tabular-nums; flex-wrap:wrap}
+
+/* ---- alert ---- */
+.alert{display:flex; gap:14px; align-items:flex-start; padding:15px 18px; border-radius:var(--r); border:1px solid; border-left-width:5px}
+.alert.warn{background:var(--warn-bg); border-color:var(--warn-line); border-left-color:var(--warn)}
+.alert.bad{background:var(--bad-bg); border-color:var(--bad-line); border-left-color:var(--bad)}
+.alert.good{background:var(--good-bg); border-color:var(--good-line); border-left-color:var(--good)}
+.alert.idle{background:var(--idle-bg); border-color:var(--idle-line); border-left-color:var(--idle)}
+.alert .ic{font-size:20px; line-height:1.2}
+.alert h3{font-size:15px; margin-bottom:4px}
+.alert.warn h3{color:var(--warn)} .alert.bad h3{color:var(--bad)} .alert.good h3{color:var(--good)} .alert.idle h3{color:var(--idle)}
+.alert p{margin:0 0 8px; font-size:13.5px; max-width:74ch}
+.alert p:last-child{margin-bottom:0}
+.money{font-variant-numeric:tabular-nums; font-weight:600}
+
+/* ---- cards ---- */
+.cols{display:grid; grid-template-columns:1fr 1fr; gap:16px}
+@media (max-width:760px){ .cols{grid-template-columns:1fr} }
+.card{background:var(--surface); border:1px solid var(--line); border-radius:var(--r); padding:16px 16px 14px; display:flex; flex-direction:column; gap:11px; min-width:0}
+.card h2{font-size:13px; font-weight:600; display:flex; align-items:center; gap:7px}
+.rows{display:flex; flex-direction:column; margin:0; padding:0; list-style:none}
+.rows li{display:flex; justify-content:space-between; align-items:baseline; gap:12px; padding:6px 0; border-bottom:1px solid var(--line); font-size:13.5px}
+.rows li:last-child{border-bottom:0}
+.rows .k{color:var(--muted); display:flex; align-items:baseline; gap:6px; flex-wrap:wrap; min-width:0}
+.rows .k b{color:var(--text); font-weight:500}
+.rows .d{font-size:11.5px; color:var(--faint); font-variant-numeric:tabular-nums; white-space:nowrap}
+.rows .v{font-variant-numeric:tabular-nums; font-weight:600; white-space:nowrap}
+.v.ok{color:var(--good)} .v.no{color:var(--bad)} .v.q{color:var(--faint); font-weight:500}
+.tag{font-size:10px; font-weight:600; letter-spacing:.05em; text-transform:uppercase; padding:2px 6px; border-radius:5px; background:var(--surface-2); color:var(--faint); border:1px solid var(--line); white-space:nowrap}
+.tag.check{background:var(--warn-bg); color:var(--warn); border-color:var(--warn-line)}
+.tag.ok{background:var(--good-bg); color:var(--good); border-color:var(--good-line)}
+.tag.no{background:var(--bad-bg); color:var(--bad); border-color:var(--bad-line)}
+.tag.acc{background:var(--accent-soft); color:var(--accent); border-color:transparent}
+.total{display:flex; justify-content:space-between; align-items:baseline; padding-top:9px; border-top:2px solid var(--line-strong); font-size:14px; font-weight:600}
+.total .v{font-variant-numeric:tabular-nums}
+.empty{font-size:13px; color:var(--faint); padding:6px 0}
+.note{font-size:12px; color:var(--faint); max-width:80ch; margin:0}
+
+/* ---- questions ---- */
+.ask{border:1px dashed var(--line-strong); border-radius:var(--r); padding:16px 18px}
+.ask h2{font-size:13px; font-weight:600; display:flex; gap:7px; align-items:center; margin-bottom:4px}
+.ask p{margin:0 0 10px; font-size:13px; color:var(--muted); max-width:70ch}
+.ask ol{margin:0; padding-left:20px; display:flex; flex-direction:column; gap:8px; font-size:13.5px}
+.ask li::marker{color:var(--accent); font-weight:700}
+
+/* ---- strip ---- */
+.strip{background:var(--surface); border:1px solid var(--line); border-radius:var(--r); padding:14px 16px; display:flex; flex-wrap:wrap; gap:16px 26px; align-items:center}
+.strip .item{display:flex; flex-direction:column; gap:3px; min-width:118px}
+.strip .item .val{font-size:17px}
+.strip .grow{flex:1 1 220px; display:flex; flex-direction:column; gap:6px; min-width:200px}
+
+/* ---- calendar ---- */
+.cal{display:flex; flex-direction:column; gap:0; margin:0; padding:0; list-style:none}
+.cal li{display:grid; grid-template-columns:78px minmax(0,1fr) auto auto; gap:10px; align-items:baseline; padding:6px 0; border-bottom:1px solid var(--line); font-size:13.5px}
+.cal li:last-child{border-bottom:0}
+.cal .d{font-size:12px; color:var(--faint); font-variant-numeric:tabular-nums}
+.cal .lbl{min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.cal .amt{font-variant-numeric:tabular-nums; font-weight:600; white-space:nowrap}
+.cal .bal{font-variant-numeric:tabular-nums; color:var(--muted); font-size:12.5px; white-space:nowrap; min-width:80px; text-align:right}
+.cal li.neg .bal{color:var(--bad); font-weight:600}
+@media (max-width:520px){ .cal li{grid-template-columns:62px minmax(0,1fr) auto} .cal .bal{grid-column:2 / 4; text-align:left; min-width:0} }
+
+.foot{font-size:12px; color:var(--faint); line-height:1.5}
+@media (prefers-reduced-motion: reduce){ *{transition:none !important} }
+</style>
+</head>
+<body>
+
+<!-- ======================= GATE ======================= -->
+<div class="gate" id="gate">
+  <form class="box" id="gate-form">
+    <h1>🔒 Mon enveloppe hebdo</h1>
+    <p>Cette page ne contient aucun chiffre. Le mot de passe ouvre le coffre où sont tes comptes.</p>
+    <input type="password" id="pwd" placeholder="Mot de passe" autocomplete="current-password" aria-label="Mot de passe" required>
+    <label class="rem"><input type="checkbox" id="remember" checked> Se souvenir sur cet appareil</label>
+    <button class="btn" type="submit" id="gate-btn">Ouvrir</button>
+    <div class="err" id="gate-err" hidden></div>
+  </form>
+</div>
+
+<!-- ======================= DASHBOARD ======================= -->
+<div class="wrap" id="app" hidden>
+
+  <div class="topbar">
+    <h1>Mon enveloppe hebdo</h1>
+    <span class="chip" id="week-chip">—</span>
+    <div class="right">
+      <span class="when" id="when">…</span>
+      <button class="btn ghost small" id="btn-refresh" type="button" title="Recharger">↻</button>
+      <button class="btn ghost small" id="btn-lock" type="button" title="Verrouiller sur cet appareil">🔒</button>
+    </div>
+  </div>
+
+  <!-- LES DEUX CHIFFRES -->
+  <div class="hero">
+    <div class="tile idle" id="t-week">
+      <div class="head"><span class="label" id="t-week-label">💳 Ce qu'il te reste cette semaine</span><span class="pill" id="t-week-pill">—</span></div>
+      <div class="big num" id="t-week-big">—</div>
+      <div class="bar" id="t-week-bar"><span style="width:0%"></span></div>
+      <div class="barlab"><span id="t-week-l1"></span><span id="t-week-l2"></span></div>
+      <p class="sub" id="t-week-sub"></p>
+    </div>
+    <div class="tile idle" id="t-month">
+      <div class="head"><span class="label" id="t-month-label">📅 Pour boucler le mois</span><span class="pill" id="t-month-pill">—</span></div>
+      <div class="big num" id="t-month-big">—</div>
+      <div class="bar" id="t-month-bar"><span style="width:0%"></span></div>
+      <div class="barlab"><span id="t-month-l1"></span><span id="t-month-l2"></span></div>
+      <p class="sub" id="t-month-sub"></p>
+    </div>
+  </div>
+
+  <!-- ALERTE TRÉSORERIE -->
+  <div class="alert idle" id="alert">
+    <span class="ic" id="alert-ic">🗓️</span>
+    <div style="min-width:0; flex:1">
+      <h3 id="alert-h">Les prochaines semaines</h3>
+      <p id="alert-p"></p>
+      <ul class="cal" id="cal"></ul>
+    </div>
+  </div>
+
+  <!-- DÉTAIL -->
+  <div class="cols">
+    <div class="card">
+      <h2 id="in-title">💰 Entré ce mois-ci</h2>
+      <ul class="rows" id="in-rows"></ul>
+      <div class="total"><span>Revenus certains</span><span class="v" id="in-total">—</span></div>
+      <p class="note" id="in-note"></p>
+    </div>
+    <div class="card">
+      <h2 id="out-title">💸 Sorti ce mois-ci</h2>
+      <ul class="rows" id="out-rows"></ul>
+      <div class="total"><span>Total sorti</span><span class="v" id="out-total">—</span></div>
+      <p class="note" id="out-note"></p>
+    </div>
+  </div>
+
+  <div class="cols">
+    <div class="card">
+      <h2>🏠 Dépenses fixes du mois</h2>
+      <ul class="rows" id="fix-rows"></ul>
+      <div class="total"><span>Total du mois</span><span class="v" id="fix-total">—</span></div>
+      <p class="note" id="fix-note"></p>
+    </div>
+    <div class="card">
+      <h2>🕒 Derniers ajouts</h2>
+      <ul class="rows" id="log-rows"></ul>
+      <p class="note" id="log-note"></p>
+    </div>
+  </div>
+
+  <!-- QUESTIONS -->
+  <div class="ask" id="ask" hidden>
+    <h2>❓ <span id="ask-title">Ce qui manque pour que le tableau soit juste</span></h2>
+    <p>Une phrase par question, dans le désordre, à ton Claude.</p>
+    <ol id="ask-list"></ol>
+  </div>
+
+  <!-- DROITS -->
+  <div class="strip" id="rights">
+    <div class="item"><span class="eyebrow">Allocation / jour</span><span class="val num" id="r-aj">—</span></div>
+    <div class="item"><span class="eyebrow">Un cachet coûte</span><span class="val num" id="r-cost">—</span></div>
+    <div class="item"><span class="eyebrow">Cachets encaissés ce mois</span><span class="val num" id="r-cachets">—</span></div>
+    <div class="grow">
+      <div class="barlab"><span class="eyebrow">Heures pour renouveler les droits</span><span id="r-hours-lab">—</span></div>
+      <div class="bar" style="color:var(--accent)"><span id="r-hours-bar" style="width:0%"></span></div>
+      <span class="note" id="r-note"></span>
+    </div>
+  </div>
+
+  <p class="foot" id="foot">Tout ce qui est chiffré ici vient du coffre, rempli par ton Claude au fil de ce que tu lui dis. Les cases marquées <span class="tag check">à vérifier</span> sont des montants réels dont la nature ou l'exactitude n'est pas confirmée. Aucun montant n'est inventé : une case vide veut dire « je ne l'ai pas ».</p>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  var READ_URL = 'https://hook.eu1.make.com/ksyrbnbjc53skqrc5ko0dlwonemj3an5';
+  var SALT = 'comptes-sibylle:';
+  var KEY_STORE = 'comptes-sibylle-key';
+  var HOURS_TARGET = 507;
+
+  // ---------- helpers ----------
+  function $(id) { return document.getElementById(id); }
+  function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+  var fmtEUR = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  function eur(n) { return fmtEUR.format(n); }
+  function eur0(n) { return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(n); }
+  function signed(n) { return (n > 0 ? '+ ' : n < 0 ? '− ' : '') + eur(Math.abs(n)); }
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+  function iso(d) { return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
+  function parseDate(s) { if (!s) return null; var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(s)); if (!m) return null; return new Date(+m[1], +m[2] - 1, +m[3]); }
+  var DAYS = ['dim', 'lun', 'mar', 'mer', 'jeu', 'ven', 'sam'];
+  var MONTHS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+  var MONTHS_S = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
+  function fmtDay(d) { return DAYS[d.getDay()] + ' ' + d.getDate() + ' ' + MONTHS_S[d.getMonth()]; }
+  function fmtShort(d) { return pad(d.getDate()) + '/' + pad(d.getMonth() + 1); }
+  function num(v) { return (typeof v === 'number' && isFinite(v)) ? v : null; }
+  function parseND(text) {
+    var out = [];
+    String(text || '').split(/\r?\n/).forEach(function (line) {
+      line = line.trim(); if (!line) return;
+      try { var o = JSON.parse(line); if (o && typeof o === 'object') out.push(o); } catch (e) { /* skip bad line */ }
+    });
+    return out;
+  }
+  function sha256hex(str) {
+    var data = new TextEncoder().encode(str);
+    return crypto.subtle.digest('SHA-256', data).then(function (buf) {
+      return Array.prototype.map.call(new Uint8Array(buf), function (b) { return ('0' + b.toString(16)).slice(-2); }).join('');
+    });
+  }
+
+  // ---------- gate ----------
+  var key = null;
+  try { key = localStorage.getItem(KEY_STORE); } catch (e) {}
+  var gate = $('gate'), app = $('app');
+  $('gate-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var pwd = $('pwd').value;
+    if (!pwd) return;
+    $('gate-btn').disabled = true; $('gate-err').hidden = true;
+    if (!window.crypto || !crypto.subtle) { showGateError('Ce navigateur ne permet pas d’ouvrir le coffre (connexion non sécurisée).'); return; }
+    sha256hex(SALT + pwd).then(function (hex) {
+      var k = hex.slice(0, 32);
+      return load(k).then(function (ok) {
+        if (!ok) { showGateError('Mot de passe inconnu, ou coffre encore vide.'); return; }
+        key = k;
+        if ($('remember').checked) { try { localStorage.setItem(KEY_STORE, k); } catch (err) {} }
+        openApp();
+      });
+    }).catch(function () { showGateError('Impossible de joindre le coffre. Vérifie ta connexion et réessaie.'); });
+  });
+  function showGateError(msg) { $('gate-err').textContent = msg; $('gate-err').hidden = false; $('gate-btn').disabled = false; }
+  function openApp() { gate.hidden = true; app.hidden = false; startPolling(); }
+  $('btn-lock').addEventListener('click', function () {
+    try { localStorage.removeItem(KEY_STORE); } catch (e) {}
+    key = null; app.hidden = true; gate.hidden = false; $('pwd').value = ''; $('gate-btn').disabled = false; clearInterval(pollTimer);
+  });
+  $('btn-refresh').addEventListener('click', function () { if (key) load(key); });
+
+  // ---------- data ----------
+  var state = null; // { movements:[], charges:[], params:{}, questions:[], updated:'', log:[] }
+  function load(k) {
+    $('when').textContent = 'chargement…'; $('when').className = 'when';
+    return fetch(READ_URL + '?k=' + encodeURIComponent(k) + '&t=' + Date.now(), { cache: 'no-store' })
+      .then(function (r) { return r.text(); })
+      .then(function (txt) {
+        if (txt.indexOf('###movements') !== 0) return false;
+        var sec = {}; var cur = null;
+        txt.split(/\r?\n/).forEach(function (line) {
+          var m = /^###(\w+)$/.exec(line);
+          if (m) { cur = m[1]; sec[cur] = []; return; }
+          if (cur) sec[cur].push(line);
+        });
+        var params = {}, questions = [];
+        parseND((sec.params || []).join('\n')).forEach(function (p) {
+          if (!p.k) return;
+          if (/^q\d+$/.test(p.k)) { questions.push(p); return; }
+          params[p.k] = p;
+        });
+        questions.sort(function (a, b) { return a.k.localeCompare(b.k, undefined, { numeric: true }); });
+        state = {
+          movements: parseND((sec.movements || []).join('\n')),
+          charges: parseND((sec.charges || []).join('\n')),
+          params: params, questions: questions,
+          updated: (sec.updated || []).join('').trim(),
+          log: parseND((sec.log || []).join('\n'))
+        };
+        render();
+        return true;
+      })
+      .catch(function () {
+        $('when').textContent = '⚠️ coffre injoignable — affichage de la dernière version'; $('when').className = 'when err';
+        return state ? true : false;
+      });
+  }
+  var pollTimer = null;
+  function startPolling() { clearInterval(pollTimer); pollTimer = setInterval(function () { if (document.visibilityState === 'visible' && key) load(key); }, 60000); }
+  document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible' && key) load(key); });
+
+  // ---------- calculs ----------
+  // Les paramètres arrivent parfois en texte ("150", "-48,73") : on les convertit ici, jamais ailleurs.
+  function P(k) {
+    var p = state.params[k]; if (!p || p.v == null || p.v === '' || p.v === 'null') return null;
+    var n = typeof p.v === 'number' ? p.v : parseFloat(String(p.v).replace(/\s/g, '').replace(',', '.'));
+    return isFinite(n) ? n : null;
+  }
+  function PS(k) { var p = state.params[k]; return p && p.v != null && p.v !== '' && p.v !== 'null' ? String(p.v) : null; }
+  function monday(d) { var x = new Date(d.getFullYear(), d.getMonth(), d.getDate()); var w = (x.getDay() + 6) % 7; x.setDate(x.getDate() - w); return x; }
+  function addDays(d, n) { var x = new Date(d); x.setDate(x.getDate() + n); return x; }
+  function inRange(d, a, b) { return d && d >= a && d <= b; }
+  function chargeDue(c, year, month) { // returns day (1..31) if the charge falls in this month, else null
+    if (c.periodicite === 'an') { if (c.mois == null || +c.mois !== month + 1) return null; return c.jour || 1; }
+    return c.jour || null; // mensuelle ; jour inconnu → null (mais due)
+  }
+  function chargeIsMonthly(c) { return c.periodicite !== 'an'; }
+  function chargeInMonth(c, month) { return chargeIsMonthly(c) || (c.mois != null && +c.mois === month + 1); }
+
+  function render() {
+    var s = state;
+    var today = new Date(); today.setHours(0, 0, 0, 0);
+    var y = today.getFullYear(), mo = today.getMonth();
+    var mStart = new Date(y, mo, 1), mEnd = new Date(y, mo + 1, 0);
+    var daysInMonth = mEnd.getDate();
+    var wStart = monday(today), wEnd = addDays(wStart, 6);
+    var weekNo = Math.floor((today.getDate() - 1 + ((mStart.getDay() + 6) % 7)) / 7) + 1;
+    var prenom = PS('prenom');
+
+    $('week-chip').textContent = 'Semaine ' + weekNo + ' · ' + fmtDay(wStart) + ' → ' + fmtDay(wEnd);
+    if (s.updated) { var u = new Date(s.updated); $('when').textContent = isNaN(u) ? 'mis à jour : ' + s.updated : 'mis à jour ' + fmtShort(u) + ' à ' + pad(u.getHours()) + ':' + pad(u.getMinutes()); }
+    else $('when').textContent = 'coffre chargé';
+    $('when').className = 'when';
+
+    var mv = s.movements.map(function (m) { m._d = parseDate(m.date); m._amt = num(m.montant); return m; }).filter(function (m) { return m._d && m._amt != null; });
+    var monthMv = mv.filter(function (m) { return inRange(m._d, mStart, mEnd); });
+    var enc = function (m) { return (m.statut || 'encaisse') !== 'prevu'; };
+
+    // ---- tuile 1 : semaine ----
+    var env = P('enveloppe_hebdo');
+    var mode = PS('enveloppe_mode') || 'depenses';
+    var cptDep = PS('compte_depenses') || 'Revolut';
+    var weekMv = mv.filter(function (m) { return inRange(m._d, wStart, wEnd) && enc(m) && m.sens === 'sortie'; });
+    var spentWeek = 0, nSpent = 0;
+    weekMv.forEach(function (m) {
+      var isCourant = m.nature === 'courant';
+      var isVirDep = m.nature === 'virement_interne' && (m.vers || '').toLowerCase() === cptDep.toLowerCase();
+      if ((mode === 'virements' && isVirDep) || (mode !== 'virements' && isCourant)) { spentWeek += m._amt; nSpent++; }
+    });
+    var t1 = $('t-week');
+    if (env == null) {
+      setTile(t1, 'idle', 'pas encore réglé', '—', 0, 'Dis à ton Claude quelle enveloppe hebdomadaire tu choisis (ex. « mon enveloppe, c’est 150 € par semaine »).', '', '');
+    } else {
+      var left = env - spentWeek, ratio = Math.max(0, Math.min(1, spentWeek / env));
+      var cls = left < 0 ? 'bad' : (left < env * 0.3 ? 'warn' : 'good');
+      var pill = left < 0 ? 'dépassée' : (left < env * 0.3 ? 'juste' : 'marge');
+      var what = mode === 'virements' ? 'viré vers ' + cptDep + ' cette semaine' : 'dépensé cette semaine';
+      setTile(t1, cls, pill, (left < 0 ? '− ' : '') + eur(Math.abs(left)), ratio,
+        (nSpent ? '<strong>' + eur(spentWeek) + '</strong> ' + what + ' (' + nSpent + ' mouvement' + (nSpent > 1 ? 's' : '') + ').' : 'Rien de saisi pour cette semaine pour l’instant.') +
+        (left < 0 ? ' Tu as dépassé l’enveloppe de <strong>' + eur(-left) + '</strong>.' : ' Il reste ' + (7 - ((today.getDay() + 6) % 7)) + ' jour' + ((7 - ((today.getDay() + 6) % 7)) > 1 ? 's' : '') + ' dans la semaine.'),
+        what + ' : ' + eur(spentWeek), 'enveloppe : ' + eur(env));
+    }
+
+    // ---- tuile 2 : mois ----
+    var revCert = 0, revPrev = 0, aide = 0, remb = 0, autreIn = 0;
+    monthMv.forEach(function (m) {
+      if (m.sens !== 'entree') return;
+      if (m.nature === 'revenu') { if (enc(m)) revCert += m._amt; else revPrev += m._amt; }
+      else if (m.nature === 'aide') { if (enc(m)) aide += m._amt; }
+      else if (m.nature === 'remboursement') { if (enc(m)) remb += m._amt; }
+      else if (enc(m)) autreIn += m._amt;
+    });
+    var chargesMonth = s.charges.filter(function (c) { return chargeInMonth(c, mo); });
+    var fixTotal = 0, fixUnknown = 0;
+    chargesMonth.forEach(function (c) { var a = num(c.montant); if (a == null) fixUnknown++; else fixTotal += a; });
+    var budgetCourant = env != null ? env * 52 / 12 : null;
+    var t2 = $('t-month');
+    if (budgetCourant == null && fixTotal === 0) {
+      setTile(t2, 'idle', 'incomplet', '—', 0, 'Il me manque les charges fixes et l’enveloppe pour dire ce qui manque ou ce qui reste.', '', '');
+    } else {
+      var need = fixTotal + (budgetCourant || 0);
+      var gap = revCert - need;
+      var cls2 = gap >= 0 ? 'good' : (gap > -need * 0.15 ? 'warn' : 'bad');
+      var pill2 = gap >= 0 ? 'ça passe' : 'il manque';
+      var ratio2 = need > 0 ? Math.max(0, Math.min(1, revCert / need)) : 1;
+      var sub2 = '<strong>' + eur(revCert) + '</strong> de revenus certains encaissés en ' + MONTHS[mo] + ', contre <strong>' + eur(fixTotal) + '</strong> de dépenses fixes' + (budgetCourant != null ? ' et <strong>' + eur0(budgetCourant) + '</strong> d’enveloppes (' + eur(env) + ' × 52 / 12)' : '') + '.';
+      if (revPrev > 0) sub2 += ' Si les <strong>' + eur(revPrev) + '</strong> de cachets prévus tombent, ça fait ' + signed(gap + revPrev) + '.';
+      if (fixUnknown) sub2 += ' ' + fixUnknown + ' charge' + (fixUnknown > 1 ? 's' : '') + ' sans montant connu, non comptée' + (fixUnknown > 1 ? 's' : '') + '.';
+      if (aide > 0) sub2 += ' L’aide reçue (' + eur(aide) + ') est comptée à part, pas dans le plancher.';
+      setTile(t2, cls2, pill2, (gap < 0 ? '− ' : '+ ') + eur(Math.abs(gap)), ratio2, sub2, 'certain : ' + eur(revCert), 'à couvrir : ' + eur(need));
+    }
+
+    // ---- alerte : calendrier de trésorerie ----
+    renderCalendar(today, mv, s.charges, monthMv);
+
+    // ---- entrées / sorties ----
+    var inRows = $('in-rows'); inRows.innerHTML = '';
+    var ins = monthMv.filter(function (m) { return m.sens === 'entree'; }).sort(function (a, b) { return a._d - b._d; });
+    if (!ins.length) inRows.appendChild(el('li', 'empty', 'Rien d’encaissé ce mois-ci pour l’instant.'));
+    ins.forEach(function (m) { inRows.appendChild(rowFor(m, true)); });
+    $('in-total').textContent = eur(revCert);
+    var inNote = [];
+    if (remb) inNote.push(eur(remb) + ' de remboursements / défraiements : ce n’est pas du revenu, c’est le retour d’une avance.');
+    if (aide) inNote.push(eur(aide) + ' d’aide extérieure, comptée à part.');
+    if (autreIn) inNote.push(eur(autreIn) + ' de nature encore inconnue, non comptés dans les revenus.');
+    if (revPrev) inNote.push(eur(revPrev) + ' prévus mais pas encore payés : bonus potentiel, jamais dans le dépensable.');
+    $('in-note').textContent = inNote.join(' ');
+    $('in-title').textContent = '💰 Entré en ' + MONTHS[mo];
+
+    var outRows = $('out-rows'); outRows.innerHTML = '';
+    var outs = monthMv.filter(function (m) { return m.sens === 'sortie' && enc(m); }).sort(function (a, b) { return a._d - b._d; });
+    var outTotal = 0, outByNature = {};
+    outs.forEach(function (m) { outTotal += m._amt; outByNature[m.nature || 'autre'] = (outByNature[m.nature || 'autre'] || 0) + m._amt; });
+    if (!outs.length) outRows.appendChild(el('li', 'empty', 'Rien de sorti ce mois-ci pour l’instant.'));
+    outs.forEach(function (m) { outRows.appendChild(rowFor(m, false)); });
+    $('out-total').textContent = eur(outTotal);
+    var natureLbl = { charge: 'dépenses fixes', courant: 'dépenses courantes', epargne: 'épargne', virement_interne: 'virements entre tes comptes', autre: 'nature inconnue', remboursement: 'remboursements', aide: 'aide', revenu: 'revenu' };
+    $('out-note').textContent = Object.keys(outByNature).map(function (k) { return (natureLbl[k] || k) + ' ' + eur(outByNature[k]); }).join(' · ');
+    $('out-title').textContent = '💸 Sorti en ' + MONTHS[mo];
+
+    // ---- charges fixes ----
+    var fixRows = $('fix-rows'); fixRows.innerHTML = '';
+    var paidTotal = 0;
+    chargesMonth.slice().sort(function (a, b) { return (chargeDue(a, y, mo) || 99) - (chargeDue(b, y, mo) || 99); }).forEach(function (c) {
+      var day = chargeDue(c, y, mo);
+      var paid = monthMv.filter(function (m) { return m.sens === 'sortie' && enc(m) && m.charge_id === c.id; });
+      var paidAmt = paid.reduce(function (n, m) { return n + m._amt; }, 0);
+      var amt = num(c.montant);
+      var li = el('li');
+      var k = el('span', 'k'); var b = el('b', null, c.libelle || c.id); k.appendChild(b);
+      if (day) k.appendChild(el('span', 'd', 'le ' + day)); else k.appendChild(el('span', 'tag check', 'jour ?'));
+      if (c.periodicite === 'an') k.appendChild(el('span', 'tag', 'annuel'));
+      if (paid.length) { k.appendChild(el('span', 'tag ok', 'payée')); paidTotal += paidAmt; }
+      else if (day && day < today.getDate()) k.appendChild(el('span', 'tag', 'pas vue passer'));
+      else k.appendChild(el('span', 'tag acc', 'à venir'));
+      if (c.verif && !paid.length) k.appendChild(el('span', 'tag check', 'à vérifier'));
+      li.appendChild(k);
+      var v = el('span', 'v' + (paid.length ? ' ok' : (amt == null ? ' q' : '')), paid.length ? eur(paidAmt) : (amt == null ? 'montant ?' : eur(amt)));
+      li.appendChild(v); fixRows.appendChild(li);
+    });
+    if (!chargesMonth.length) fixRows.appendChild(el('li', 'empty', 'Aucune charge fixe enregistrée.'));
+    $('fix-total').textContent = eur(fixTotal);
+    var yearly = s.charges.filter(function (c) { return c.periodicite === 'an' && num(c.montant) != null; }).reduce(function (n, c) { return n + num(c.montant); }, 0);
+    var monthlyEq = s.charges.filter(function (c) { return chargeIsMonthly(c) && num(c.montant) != null; }).reduce(function (n, c) { return n + num(c.montant); }, 0) + yearly / 12;
+    $('fix-note').textContent = 'Payé à ce jour : ' + eur(paidTotal) + '. Équivalent mensuel de toutes les charges, provisions annuelles comprises (÷ 12) : ' + eur(monthlyEq) + '.' + (fixUnknown ? ' ' + fixUnknown + ' montant' + (fixUnknown > 1 ? 's' : '') + ' inconnu' + (fixUnknown > 1 ? 's' : '') + '.' : '');
+
+    // ---- derniers ajouts ----
+    var logRows = $('log-rows'); logRows.innerHTML = '';
+    var recent = mv.slice().sort(function (a, b) { return String(b.cree || b.id).localeCompare(String(a.cree || a.id)); }).slice(0, 6);
+    recent.forEach(function (m) { logRows.appendChild(rowFor(m, m.sens === 'entree', true)); });
+    if (!recent.length) logRows.appendChild(el('li', 'empty', 'Rien pour l’instant.'));
+    var lastLog = s.log.length ? s.log[s.log.length - 1] : null;
+    $('log-note').textContent = lastLog ? (lastLog.msg || '') : '';
+
+    // ---- questions ----
+    var askEl = $('ask'), askList = $('ask-list'); askList.innerHTML = '';
+    if (s.questions.length) {
+      askEl.hidden = false;
+      $('ask-title').textContent = s.questions.length + (s.questions.length > 1 ? ' réponses' : ' réponse') + ' et le tableau devient juste';
+      s.questions.forEach(function (q) { askList.appendChild(el('li', null, String(q.v || ''))); });
+    } else askEl.hidden = true;
+
+    // ---- droits ----
+    var aj = P('aj'), hc = P('heures_cachet') || 12, annexe = PS('annexe') || 'X';
+    var coef = annexe === 'VIII' ? 1.4 / 8 : 1.3 / 10;
+    $('r-aj').textContent = aj != null ? ((s.params.aj && s.params.aj.verif) ? '≈ ' : '') + eur(aj) : '—';
+    $('r-cost').textContent = aj != null ? (hc * coef).toFixed(2).replace('.', ',') + ' j = ' + eur0(hc * coef * aj) : (hc * coef).toFixed(2).replace('.', ',') + ' jour d’allocation';
+    var cachets = monthMv.filter(function (m) { return m.sens === 'entree' && m.categorie === 'cachet' && enc(m); });
+    $('r-cachets').textContent = cachets.length + (cachets.length > 1 ? ' cachets' : ' cachet') + (cachets.length ? ' · ' + eur(cachets.reduce(function (n, m) { return n + m._amt; }, 0)) : '');
+    var hours = P('heures_compteur');
+    var hp = s.params.heures_compteur;
+    if (hours != null) {
+      $('r-hours-lab').textContent = hours + ' / ' + HOURS_TARGET + ' h' + (hp && hp.date ? ' · au ' + fmtShort(parseDate(hp.date) || new Date(hp.date)) : '') + (hp && hp.verif ? ' · à recaler' : '');
+      $('r-hours-bar').style.width = Math.min(100, hours / HOURS_TARGET * 100).toFixed(1) + '%';
+    } else { $('r-hours-lab').textContent = 'compteur inconnu'; $('r-hours-bar').style.width = '0%'; }
+    var anniv = parseDate(PS('date_anniversaire'));
+    var need = hours != null ? Math.max(0, Math.ceil((HOURS_TARGET - hours) / hc)) : null;
+    $('r-note').textContent = (anniv ? 'Date anniversaire des droits : ' + anniv.getDate() + ' ' + MONTHS[anniv.getMonth()] + ' ' + anniv.getFullYear() + '. ' : '') + (need != null ? 'Il manque environ ' + need + ' cachets de ' + hc + ' h.' : '') + (hp && hp.note ? ' ' + hp.note : '');
+  }
+
+  function setTile(tile, cls, pill, big, ratio, subHtml, l1, l2) {
+    tile.className = 'tile ' + cls;
+    tile.querySelector('.pill').textContent = pill;
+    tile.querySelector('.big').textContent = big;
+    var bar = tile.querySelector('.bar'); bar.style.color = 'var(--' + cls + ')'; bar.firstElementChild.style.width = (ratio * 100).toFixed(1) + '%';
+    tile.querySelector('.sub').innerHTML = subHtml;
+    var labs = tile.querySelectorAll('.barlab span'); labs[0].textContent = l1; labs[1].textContent = l2;
+  }
+
+  function rowFor(m, isIn, withDate) {
+    var li = el('li');
+    var k = el('span', 'k');
+    var b = el('b', null, m.libelle || m.categorie || '(sans libellé)'); k.appendChild(b);
+    k.appendChild(el('span', 'd', fmtShort(m._d)));
+    var nat = m.nature;
+    if (isIn && nat && nat !== 'revenu') k.appendChild(el('span', 'tag', { remboursement: 'remboursement', aide: 'aide', autre: 'c’est quoi ?', virement_interne: 'virement' }[nat] || nat));
+    if (!isIn && nat && nat !== 'courant') k.appendChild(el('span', 'tag', { charge: 'fixe', epargne: 'épargne', virement_interne: 'virement', autre: 'c’est quoi ?' }[nat] || nat));
+    if ((m.statut || '') === 'prevu') k.appendChild(el('span', 'tag acc', 'prévu'));
+    if (m.verif) k.appendChild(el('span', 'tag check', 'à vérifier'));
+    li.appendChild(k);
+    var cls = 'v' + (isIn ? (nat === 'revenu' && (m.statut || '') !== 'prevu' ? ' ok' : ' q') : ' no');
+    li.appendChild(el('span', cls, (isIn ? '' : '− ') + eur(m._amt)));
+    return li;
+  }
+
+  function renderCalendar(today, mv, charges, monthMv) {
+    var cptP = PS('compte_principal') || 'CMB';
+    var soldeP = state.params['solde_' + cptP];
+    var alert = $('alert'), cal = $('cal'); cal.innerHTML = '';
+    var horizon = addDays(today, 45);
+    var events = [];
+    // charges à venir (non payées) sur l'horizon
+    for (var k = 0; k < 2; k++) {
+      var y = today.getFullYear(), mo = today.getMonth() + k;
+      var d0 = new Date(y, mo, 1); y = d0.getFullYear(); mo = d0.getMonth();
+      charges.forEach(function (c) {
+        if (!chargeInMonth(c, mo)) return;
+        var day = chargeDue(c, y, mo); var amt = num(c.montant); if (!day || amt == null) return;
+        var d = new Date(y, mo, Math.min(day, new Date(y, mo + 1, 0).getDate()));
+        if (d < today || d > horizon) return;
+        var paid = mv.some(function (m) { return m.charge_id === c.id && m.sens === 'sortie' && m._d.getMonth() === mo && m._d.getFullYear() === y; });
+        if (paid) return;
+        events.push({ d: d, label: c.libelle, amt: -amt, verif: !!c.verif });
+      });
+    }
+    // mouvements prévus
+    mv.forEach(function (m) {
+      if ((m.statut || '') !== 'prevu' || m._d < today || m._d > horizon) return;
+      events.push({ d: m._d, label: m.libelle + ' (prévu)', amt: (m.sens === 'entree' ? 1 : -1) * m._amt, verif: !!m.verif, prevu: true });
+    });
+    events.sort(function (a, b) { return a.d - b.d; });
+
+    var start = null, startDate = null;
+    if (soldeP && num(soldeP.v) != null) {
+      start = num(soldeP.v); startDate = soldeP.date ? new Date(soldeP.date) : null;
+      if (startDate && !isNaN(startDate)) {
+        // mouvements encaissés sur le compte principal après la date du solde
+        mv.forEach(function (m) {
+          if ((m.statut || 'encaisse') === 'prevu') return;
+          if ((m.compte || cptP) !== cptP) return;
+          if (m._d > startDate && m._d <= today) start += (m.sens === 'entree' ? 1 : -1) * m._amt;
+        });
+      }
+    }
+    var bal = start, minBal = start, minDate = null;
+    events.forEach(function (e) { if (bal != null) { bal += e.amt; e.bal = bal; if (bal < minBal) { minBal = bal; minDate = e.d; } } });
+
+    var cls, h, p;
+    if (start == null) {
+      cls = 'idle'; h = 'Je n’ai pas de solde de départ';
+      p = 'Donne à ton Claude le solde du compte ' + cptP + ' et sa date (« le CMB est à 312 € ce matin ») : je pourrai dire si un découvert arrive.' + (events.length ? ' Voici quand même ce qui va tomber :' : '');
+    } else {
+      var soldeTxt = 'Solde estimé du ' + cptP + ' aujourd’hui : ' + eur(start) + (startDate && !isNaN(startDate) ? ' (à partir du relevé du ' + fmtShort(startDate) + ')' : '') + '.';
+      if (!events.length) { cls = start < 0 ? 'bad' : 'good'; h = start < 0 ? 'Le compte est à découvert' : 'Rien de daté à venir'; p = soldeTxt + ' Aucune charge ni cachet daté dans les 45 prochains jours.'; }
+      else if (minBal < 0) { cls = 'bad'; h = 'Découvert prévu le ' + fmtDay(minDate) + ' : ' + eur(minBal); p = soldeTxt + ' Avec les charges à venir et les cachets prévus, le compte passe à ' + eur(minBal) + '. C’est un trou de ' + eur(-minBal) + ' à prévoir avant cette date.'; }
+      else if (minBal < 100) { cls = 'warn'; h = 'Ça passe, mais de justesse'; p = soldeTxt + ' Point le plus bas dans les 45 jours : ' + eur(minBal) + ' le ' + fmtDay(minDate) + '.'; }
+      else { cls = 'good'; h = 'Les 45 prochains jours tiennent'; p = soldeTxt + ' Point le plus bas : ' + eur(minBal) + (minDate ? ' le ' + fmtDay(minDate) : '') + '.'; }
+    }
+    alert.className = 'alert ' + cls;
+    $('alert-ic').textContent = cls === 'bad' ? '🚨' : cls === 'warn' ? '⚠️' : cls === 'good' ? '✅' : '🗓️';
+    $('alert-h').textContent = h; $('alert-p').textContent = p;
+    events.slice(0, 12).forEach(function (e) {
+      var li = el('li', e.bal != null && e.bal < 0 ? 'neg' : '');
+      li.appendChild(el('span', 'd', fmtDay(e.d)));
+      var lbl = el('span', 'lbl', e.label + (e.verif ? ' · à vérifier' : '')); li.appendChild(lbl);
+      li.appendChild(el('span', 'amt ' + (e.amt < 0 ? '' : 'ok'), signed(e.amt)));
+      li.appendChild(el('span', 'bal', e.bal != null ? '→ ' + eur(e.bal) : ''));
+      cal.appendChild(li);
+    });
+  }
+
+  // ---------- boot ----------
+  if (key) {
+    load(key).then(function (ok) { if (ok) openApp(); else { try { localStorage.removeItem(KEY_STORE); } catch (e) {} key = null; } });
+  }
+})();
+</script>
+</body>
+</html>
