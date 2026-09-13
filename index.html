@@ -337,7 +337,8 @@ details.det{font-size:13px} details.det summary{cursor:pointer;color:var(--accen
 
   <div class="cols">
     <div class="card">
-      <h2>🏠 Dépenses fixes du mois</h2>
+      <div class="chart-head"><h2>🏠 Dépenses fixes du mois</h2>
+        <div class="seg" id="seg-fix" role="group" aria-label="Tri"><button type="button" data-v="date">Par date</button><button type="button" data-v="cat">Par catégorie</button></div></div>
       <ul class="rows colored" id="fix-rows"></ul>
       <div class="total"><span>Total du mois</span><span class="v" id="fix-total">—</span></div>
       <p class="note" id="fix-note"></p>
@@ -646,25 +647,11 @@ details.det{font-size:13px} details.det summary{cursor:pointer;color:var(--accen
     if (!outRows.children.length) outRows.appendChild(el('li', 'empty', 'Rien de sorti ce mois-ci pour l’instant.'));
 
     // ---- charges fixes ----
-    var fixRows = $('fix-rows'); fixRows.innerHTML = '';
     var paidTotal = 0;
-    chargesMonth.slice().sort(function (a, b) { return (chargeDue(a, y, mo) || 99) - (chargeDue(b, y, mo) || 99); }).forEach(function (c) {
-      var day = chargeDue(c, y, mo);
-      var paid = monthMv.filter(function (m) { return m.sens === 'sortie' && enc(m) && m.charge_id === c.id; });
-      var paidAmt = paid.reduce(function (n, m) { return n + m._amt; }, 0);
-      var amt = num(c.montant);
-      var li = el('li'); li.style.setProperty('--c', cvar(catOf({ categorie: c.categorie, nature: 'charge' })));
-      var k = el('span', 'k'); k.appendChild(pi(catOf({ categorie: c.categorie, nature: 'charge' }))); var b = el('b', null, c.libelle || c.id); k.appendChild(b);
-      if (day) k.appendChild(el('span', 'd', 'le ' + day)); else k.appendChild(el('span', 'tag check', 'jour ?'));
-      if (c.periodicite === 'an') k.appendChild(el('span', 'tag', 'annuel'));
-      if (paid.length) { k.appendChild(el('span', 'tag ok', 'payée')); paidTotal += paidAmt; }
-      else if (monthCmp < 0 || (monthCmp === 0 && day && day < today.getDate())) k.appendChild(el('span', 'tag', 'pas vue passer'));
-      else k.appendChild(el('span', 'tag acc', 'à venir'));
-      if (c.verif && !paid.length) k.appendChild(el('span', 'tag check', 'à vérifier'));
-      li.appendChild(k);
-      var v = el('span', 'v' + (paid.length ? ' ok' : (amt == null ? ' q' : '')), paid.length ? eur(paidAmt) : (amt == null ? 'montant ?' : eur(amt)));
-      li.appendChild(v); fixRows.appendChild(li);
-    });
+    chargesMonth.forEach(function (c) { var paid = monthMv.filter(function (m) { return m.sens === 'sortie' && enc(m) && m.charge_id === c.id; }); paidTotal += paid.reduce(function (n, m) { return n + m._amt; }, 0); });
+    fixCtx = { chargesMonth: chargesMonth, monthMv: monthMv, y: y, mo: mo, monthCmp: monthCmp, today: today };
+    renderFixList();
+    var fixRows = $('fix-rows');
     if (!chargesMonth.length) fixRows.appendChild(el('li', 'empty', 'Aucune charge fixe enregistrée.'));
     $('fix-total').textContent = eur(fixTotal);
     var yearly = s.charges.filter(function (c) { return c.periodicite === 'an' && num(c.montant) != null; }).reduce(function (n, c) { return n + num(c.montant); }, 0);
@@ -938,6 +925,53 @@ details.det{font-size:13px} details.det summary{cursor:pointer;color:var(--accen
     var futNoIn = periods.some(function (p) { return p.future && p.outT > 0; }) && !periods.some(function (p) { return p.future && p.inT > 0; });
     $('chart-note').textContent = (chartSel.length === ACCOUNTS.length ? 'Les quatre poches ensemble. Les virements et retraits entre elles ne sont ni des rentrées ni des dépenses : ils déplacent l’argent d’une carte à l’autre, en haut.' : 'Vue partielle : seuls les mouvements des poches affichées sont comptés. Les virements et retraits entre tes quatre poches n’apparaissent jamais ici.') + (futNoIn ? ' Aucune rentrée à venir n’est enregistrée : les périodes futures ne montrent que ce qui va sortir. Dis à ton Claude ce qui est attendu (« France Travail vers le 5 octobre, environ 1 380 € », « cachet 250 € le 18, pas encore payé »).' : '');
   }
+  // ---- dépenses fixes : par date ou par catégorie ----
+  var fixSort = 'date', fixCollapsed = {}, fixCtx = null;
+  try { var pf = localStorage.getItem('sib-fix-sort'); if (pf === 'date' || pf === 'cat') fixSort = pf; } catch (e) {}
+  Array.prototype.forEach.call(document.querySelectorAll('#seg-fix button'), function (btn) {
+    btn.addEventListener('click', function () { fixSort = btn.dataset.v; try { localStorage.setItem('sib-fix-sort', fixSort); } catch (e) {} renderFixList(); });
+  });
+  function fixRow(c, ctx) {
+    var day = chargeDue(c, ctx.y, ctx.mo);
+    var paid = ctx.monthMv.filter(function (m) { return m.sens === 'sortie' && (m.statut || 'encaisse') !== 'prevu' && m.charge_id === c.id; });
+    var paidAmt = paid.reduce(function (n, m) { return n + m._amt; }, 0);
+    var amt = num(c.montant), key = catOf({ categorie: c.categorie, nature: 'charge' });
+    var li = el('li'); li.style.setProperty('--c', cvar(key));
+    var k = el('span', 'k'); k.appendChild(pi(key)); k.appendChild(el('b', null, c.libelle || c.id));
+    if (day) k.appendChild(el('span', 'd', 'le ' + day)); else k.appendChild(el('span', 'tag check', 'jour ?'));
+    if (c.periodicite === 'an') k.appendChild(el('span', 'tag', 'annuel'));
+    if (paid.length) k.appendChild(el('span', 'tag ok', 'payée'));
+    else if (ctx.monthCmp < 0 || (ctx.monthCmp === 0 && day && day < ctx.today.getDate())) k.appendChild(el('span', 'tag', 'pas vue passer'));
+    else k.appendChild(el('span', 'tag acc', 'à venir'));
+    if (c.verif && !paid.length) k.appendChild(el('span', 'tag check', 'à vérifier'));
+    li.appendChild(k);
+    li.appendChild(el('span', 'v' + (paid.length ? ' ok' : (amt == null ? ' q' : '')), paid.length ? eur(paidAmt) : (amt == null ? 'montant ?' : eur(amt))));
+    return li;
+  }
+  function renderFixList() {
+    if (!fixCtx) return;
+    var ctx = fixCtx, box = $('fix-rows'); box.innerHTML = '';
+    Array.prototype.forEach.call(document.querySelectorAll('#seg-fix button'), function (b) { b.setAttribute('aria-pressed', b.dataset.v === fixSort); });
+    var list = ctx.chargesMonth.slice();
+    if (!list.length) { box.appendChild(el('li', 'empty', 'Aucune charge fixe enregistrée.')); return; }
+    var byDay = function (a, b) { return (chargeDue(a, ctx.y, ctx.mo) || 99) - (chargeDue(b, ctx.y, ctx.mo) || 99); };
+    if (fixSort === 'date') { list.sort(byDay).forEach(function (c) { box.appendChild(fixRow(c, ctx)); }); return; }
+    var groups = {};
+    list.forEach(function (c) { var k = catOf({ categorie: c.categorie, nature: 'charge' }); (groups[k] = groups[k] || []).push(c); });
+    CAT_ORDER.forEach(function (k) {
+      var items = groups[k]; if (!items) return;
+      items.sort(byDay);
+      var tot = items.reduce(function (n, c) { return n + (num(c.montant) || 0); }, 0), unknown = items.filter(function (c) { return num(c.montant) == null; }).length;
+      var hdr = el('li', 'grp'); hdr.style.setProperty('--c', cvar(k)); hdr.setAttribute('role', 'button'); hdr.setAttribute('aria-expanded', !fixCollapsed[k]);
+      var kk = el('span', 'k'); kk.appendChild(pi(k)); kk.appendChild(el('b', null, CATS[k].l)); kk.appendChild(el('span', 'cnt', items.length + (items.length > 1 ? ' charges' : ' charge') + (unknown ? ', ' + unknown + ' sans montant' : ''))); hdr.appendChild(kk);
+      hdr.appendChild(el('span', 'chev', fixCollapsed[k] ? '▸' : '▾'));
+      hdr.appendChild(el('span', 'v', eur(tot)));
+      hdr.addEventListener('click', function () { fixCollapsed[k] = !fixCollapsed[k]; renderFixList(); });
+      box.appendChild(hdr);
+      items.forEach(function (c) { var li = fixRow(c, ctx); li.classList.add('item'); if (fixCollapsed[k]) li.classList.add('hid'); box.appendChild(li); });
+    });
+  }
+
   var monthOffset = 0; // 0 = mois en cours ; −1 = mois précédent…
   $('m-prev').addEventListener('click', function () { monthOffset--; if (state) render(); });
   $('m-next').addEventListener('click', function () { if (monthOffset < 1) { monthOffset++; if (state) render(); } });
