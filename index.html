@@ -164,7 +164,7 @@ button{font:inherit; cursor:pointer}
 @media (max-width:520px){ .cal li{grid-template-columns:auto minmax(0,1fr) auto; column-gap:8px} .cal .bal{grid-column:2 / 4; text-align:left; min-width:0} }
 
 /* ---- catégories (validées le 13/09/2026) ---- */
-:root{--c-ft:#1F5FBF;--c-cachet:#7A3E9D;--c-remb:#5B7A99;--c-aide:#C2478A;--c-logement:#B4432B;--c-abo:#D97A12;--c-assur:#2F6B8E;--c-impots:#6E4B2A;--c-courses:#1F8A4C;--c-transp:#0F8C8C;--c-tabac:#B08A00;--c-sante:#D64F5C;--c-loisirs:#8C5BD9;--c-presta:#C22E8A;--c-magie:#2B2350;--c-vir:#9A9AB0;--c-epargne:#0B6E5E;--c-inc:#8A8A9C}
+:root{--c-ft:#1F5FBF;--c-cachet:#7A3E9D;--c-remb:#5B7A99;--c-aide:#C2478A;--c-logement:#B4432B;--c-abo:#D97A12;--c-assur:#2F6B8E;--c-impots:#6E4B2A;--c-courses:#1F8A4C;--c-transp:#0F8C8C;--c-tabac:#B08A00;--c-sante:#D64F5C;--c-loisirs:#8C5BD9;--c-presta:#C22E8A;--c-magie:#2B2350;--c-vir:#9A9AB0;--c-epargne:#0B6E5E;--c-inc:#8A8A9C;--c-liquide:#5E8C1A}
 @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){--c-magie:#6C5FC7;--c-impots:#9C6B3C;--c-assur:#4A8FB8;--c-inc:#7C7C92;--c-remb:#7A9AB8} }
 :root[data-theme="dark"]{--c-magie:#6C5FC7;--c-impots:#9C6B3C;--c-assur:#4A8FB8;--c-inc:#7C7C92;--c-remb:#7A9AB8}
 .pi{display:inline-flex;width:24px;height:24px;border-radius:7px;background:#fff;border:2px solid var(--c);align-items:center;justify-content:center;font-size:13px;flex:none;line-height:1}
@@ -204,6 +204,29 @@ button{font:inherit; cursor:pointer}
 details.det{font-size:13px} details.det summary{cursor:pointer;color:var(--accent);font-weight:600;padding:4px 0;list-style:none} details.det summary::before{content:"▸ "} details.det[open] summary::before{content:"▾ "} details.det .rows{margin-top:6px}
 .stack em.lbltxt{font-style:normal;overflow:hidden;text-overflow:ellipsis}
 @media (max-width:520px){ .stackwrap{grid-template-columns:1fr auto 1fr;gap:6px} .gap{padding-top:40px} .stack div{font-size:11.5px;padding:0 6px} .stack em.lbltxt{display:none} }
+/* ---- vue d’ensemble ---- */
+.chart-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px}
+.seg{display:inline-flex;background:var(--surface-2);border-radius:9px;padding:2px;gap:2px}
+.seg button{border:0;box-shadow:none;background:transparent;color:var(--muted);font-weight:600;font-size:13px;padding:6px 12px;border-radius:7px}
+.seg button[aria-pressed="true"]{background:var(--accent);color:#fff}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{display:inline-flex;align-items:center;gap:6px;border:2px solid var(--c);background:var(--surface);color:var(--text);font-size:12.5px;font-weight:600;padding:3px 10px 3px 3px;border-radius:999px;box-shadow:none}
+.chips button[aria-pressed="false"]{opacity:.45;border-style:dashed}
+.chips button .pi{width:22px;height:22px;font-size:12px}
+.chips button small{color:var(--muted);font-weight:500}
+.chart svg{display:block;width:100%;height:auto}
+.chart svg text{font-family:"IBM Plex Sans",ui-sans-serif,system-ui,sans-serif;font-size:11px;fill:var(--muted);font-variant-numeric:tabular-nums}
+.chart svg text.val{fill:var(--text);font-weight:600;font-size:10.5px}
+.chart svg text.val.good{fill:var(--good)} .chart svg text.val.bad{fill:var(--bad)}
+.chart svg text.per{fill:var(--text);font-weight:600;font-size:11.5px}
+.chart svg text.per.fut{fill:var(--faint);font-weight:500}
+.chart svg line.grid{stroke:var(--line);stroke-width:1}
+.chart svg line.zero{stroke:var(--line-strong);stroke-width:1;stroke-dasharray:3 3}
+.chart svg rect.now{fill:var(--accent-soft)}
+.eyebrow-l{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);margin:6px 0 2px}
+.legend{display:flex;flex-wrap:wrap;gap:6px 12px;font-size:12.5px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+.legend .hatchsw{width:18px;height:12px;border-radius:3px;background:repeating-linear-gradient(45deg,var(--faint) 0 2px,transparent 2px 5px);border:1px solid var(--faint)}
 .foot{font-size:12px; color:var(--faint); line-height:1.5}
 @media (prefers-reduced-motion: reduce){ *{transition:none !important} }
 </style>
@@ -261,26 +284,20 @@ details.det{font-size:13px} details.det summary{cursor:pointer;color:var(--accen
     <p class="note" id="solde-note"></p>
   </div>
 
-  <!-- ALERTE TRÉSORERIE -->
-  <div class="alert idle" id="alert">
-    <span class="ic" id="alert-ic">🗓️</span>
-    <div style="min-width:0; flex:1">
-      <h3 id="alert-h">Les prochaines semaines</h3>
-      <p id="alert-p"></p>
-      <ul class="cal" id="cal"></ul>
+  <!-- VUE D’ENSEMBLE : graphique par période -->
+  <div class="card chart" id="chart">
+    <div class="chart-head">
+      <h2>📈 Vue d’ensemble</h2>
+      <div class="seg" id="seg-per" role="group" aria-label="Période">
+        <button type="button" data-v="semaine">Semaine</button><button type="button" data-v="mois">Mois</button><button type="button" data-v="annee">Année</button>
+      </div>
     </div>
-  </div>
-
-  <!-- VUE A : deux colonnes proportionnelles -->
-  <div class="card" id="viewA">
-    <h2 id="a-title">📊 Rentré et dépensé ce mois-ci</h2>
-    <div class="stackwrap">
-      <div class="scol"><div class="coltotal"><span>Rentré</span><b id="a-in-total">—</b></div><div class="stack" id="a-in"></div></div>
-      <div class="gap"><span class="delta idle" id="a-delta">—</span></div>
-      <div class="scol"><div class="coltotal"><span>Dépensé</span><b id="a-out-total">—</b></div><div class="stack" id="a-out"></div></div>
-    </div>
-    <div class="aside" id="a-aside"></div>
-    <p class="note" id="a-note"></p>
+    <div class="chips" id="acc-chips" role="group" aria-label="Sources d’argent"></div>
+    <div class="chart-line"><div class="eyebrow-l" id="line-title">Solde global</div><div id="line-svg"></div><p class="note" id="line-note"></p></div>
+    <div class="eyebrow-l">Rentré · Dépensé · Solde de la période</div>
+    <div id="bars-svg"></div>
+    <div class="legend" id="chart-legend"></div>
+    <p class="note" id="chart-note"></p>
   </div>
 
   <!-- VUE B : barres par catégorie -->
@@ -302,23 +319,16 @@ details.det{font-size:13px} details.det summary{cursor:pointer;color:var(--accen
 
   <div class="cols">
     <div class="card">
-      <h2>🎻🎩 Pro ce mois-ci</h2>
-      <div class="bars" id="pro-bars"></div>
-      <div class="total"><span>Total pro</span><span class="v" id="pro-total">—</span></div>
-      <p class="note">Presta et Magie : hors enveloppe de la semaine, hors dépenses fixes. Ce que ton activité te coûte, à part.</p>
-    </div>
-    <div class="card">
       <h2>🏠 Dépenses fixes du mois</h2>
       <ul class="rows" id="fix-rows"></ul>
       <div class="total"><span>Total du mois</span><span class="v" id="fix-total">—</span></div>
       <p class="note" id="fix-note"></p>
     </div>
-  </div>
-
-  <div class="card">
-    <h2>🕒 Derniers ajouts</h2>
-    <ul class="rows" id="log-rows"></ul>
-    <p class="note" id="log-note"></p>
+    <div class="card">
+      <h2>🕒 Derniers ajouts</h2>
+      <ul class="rows" id="log-rows"></ul>
+      <p class="note" id="log-note"></p>
+    </div>
   </div>
 
   <!-- QUESTIONS -->
@@ -357,18 +367,38 @@ details.det{font-size:13px} details.det summary{cursor:pointer;color:var(--accen
     logement: { l: 'Logement', e: '🏠', c: 'logement' }, abo: { l: 'Abonnements & télécom', e: '📡', c: 'abo' }, assur: { l: 'Assurances & banque', e: '🛡️', c: 'assur' }, impots: { l: 'Impôts', e: '🧾', c: 'impots' },
     courses: { l: 'Courses & repas', e: '🛒', c: 'courses' }, transp: { l: 'Transports', e: '🚌', c: 'transp' }, tabac: { l: 'Tabac', e: '🚬', c: 'tabac' }, sante: { l: 'Santé', e: '💊', c: 'sante' }, loisirs: { l: 'Plaisirs & divers', e: '🎁', c: 'loisirs' },
     presta: { l: 'Presta', e: '🎻', c: 'presta' }, magie: { l: 'Magie', e: '🎩', c: 'magie' },
-    vir: { l: 'Virements entre tes comptes', e: '🔀', c: 'vir' }, epargne: { l: 'Épargne', e: '🐷', c: 'epargne' }, inc: { l: 'À classer', e: '❓', c: 'inc' }
+    vir: { l: 'Virements entre tes comptes', e: '🔀', c: 'vir' }, liquide: { l: 'Liquide', e: '💵', c: 'liquide' }, epargne: { l: 'Épargne', e: '🐷', c: 'epargne' }, inc: { l: 'À classer', e: '❓', c: 'inc' }
   };
   var CAT_ALIAS = { france_travail: 'ft', ft: 'ft', cachet: 'cachet', cachets: 'cachet', remboursement_secu: 'remb', defraiement: 'remb', remboursement: 'remb', remb: 'remb', aide: 'aide',
     loyer: 'logement', logement: 'logement', charges_logement: 'logement', garage: 'logement', telephone: 'abo', internet: 'abo', abonnements: 'abo', abo: 'abo',
     assurance: 'assur', assur: 'assur', banque: 'assur', mutuelle: 'assur', impots: 'impots', alimentation: 'courses', courses: 'courses', repas: 'courses', transports: 'transp', transport: 'transp', transp: 'transp',
-    tabac: 'tabac', sante: 'sante', loisirs: 'loisirs', plaisirs: 'loisirs', vetements: 'loisirs', presta: 'presta', materiel: 'presta', magie: 'magie', virement: 'vir', vir: 'vir', epargne: 'epargne' };
+    tabac: 'tabac', sante: 'sante', loisirs: 'loisirs', plaisirs: 'loisirs', vetements: 'loisirs', presta: 'presta', materiel: 'presta', magie: 'magie', virement: 'vir', vir: 'vir', epargne: 'epargne', retrait: 'liquide', liquide: 'liquide', cash: 'liquide', especes: 'liquide' };
   function catOf(m) { // la catégorie saisie d’abord, la nature ensuite, sinon « à classer »
     var c = String(m.categorie || '').toLowerCase().trim();
     if (c === 'divers') return m.nature === 'courant' ? 'loisirs' : 'inc';
     if (c === 'sante') return m.nature === 'charge' ? 'assur' : 'sante';
     if (CAT_ALIAS[c]) return CAT_ALIAS[c];
     switch (m.nature) { case 'remboursement': return 'remb'; case 'aide': return 'aide'; case 'virement_interne': return 'vir'; case 'epargne': return 'epargne'; case 'pro': return 'presta'; default: return 'inc'; }
+  }
+  // ---------- les quatre sources d’argent ----------
+  var ACCOUNTS = [
+    { id: 'cmb_bretagne', l: 'CMB Bretagne', e: '💳', c: 'var(--c-logement)', al: ['cmb', 'cmbb', 'cmbbretagne', 'bretagne', 'cheques', 'chequescmb'] },
+    { id: 'cmb_grenoble', l: 'CMB Grenoble', e: '🏦', c: 'var(--c-assur)', al: ['cmbg', 'cmbgrenoble', 'grenoble'] },
+    { id: 'revolut', l: 'Revolut', e: '📱', c: 'var(--c-cachet)', al: ['revolut', 'revo'] },
+    { id: 'liquide', l: 'Liquide', e: '💵', c: 'var(--c-liquide)', al: ['liquide', 'cash', 'especes', 'espece', 'liquid'] }
+  ];
+  function accId(name) {
+    var n = String(name || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '');
+    if (!n) return null;
+    for (var i = 0; i < ACCOUNTS.length; i++) { var a = ACCOUNTS[i]; if (a.id.replace('_', '') === n || a.al.indexOf(n) >= 0) return a.id; }
+    return null;
+  }
+  function accOf(id) { for (var i = 0; i < ACCOUNTS.length; i++) if (ACCOUNTS[i].id === id) return ACCOUNTS[i]; return null; }
+  function mainAcc() { return accId(PS('compte_principal')) || 'cmb_bretagne'; }
+  function anchorOf(id) { // dernier solde connu du compte : paramètre solde_<compte>, quel que soit le nom employé
+    var keys = Object.keys(state.params);
+    for (var i = 0; i < keys.length; i++) { if (keys[i].indexOf('solde_') !== 0) continue; if (accId(keys[i].slice(6)) === id) { var p = state.params[keys[i]]; var v = P(keys[i]); if (v == null) return null; var d = p.date ? new Date(p.date) : null; return { v: v, d: d && !isNaN(d) ? d : null, key: keys[i] }; } }
+    return null;
   }
   function isPro(m) { var k = catOf(m); return k === 'presta' || k === 'magie' || m.nature === 'pro'; }
   function isInternal(m) { return m.nature === 'virement_interne' || m.nature === 'epargne'; }
@@ -520,7 +550,7 @@ details.det{font-size:13px} details.det summary{cursor:pointer;color:var(--accen
     var weekMv = mv.filter(function (m) { return inRange(m._d, wStart, wEnd) && enc(m) && m.sens === 'sortie'; });
     var spentWeek = 0, nSpent = 0;
     weekMv.forEach(function (m) {
-      var isCourant = m.nature === 'courant' && !isPro(m);
+      var isCourant = m.nature === 'courant' || m.nature === 'pro';
       var isVirDep = m.nature === 'virement_interne' && (m.vers || '').toLowerCase() === cptDep.toLowerCase();
       if ((mode === 'virements' && isVirDep) || (mode !== 'virements' && isCourant)) { spentWeek += m._amt; nSpent++; }
     });
@@ -568,26 +598,14 @@ details.det{font-size:13px} details.det summary{cursor:pointer;color:var(--accen
     }
 
     // ---- alerte : calendrier de trésorerie ----
-    renderCalendar(today, mv, s.charges, monthMv);
-    renderSolde(today, mv, monthMv, cptDep);
+    buildFlows(today, mv, s.charges);
+    renderSolde(today, monthMv);
+    renderChart(today);
 
-    // ---- vues A et B : par catégorie (virements et épargne à part) ----
+    // ---- vue B : par catégorie (virements et épargne à part) ----
     var inMv = monthMv.filter(function (m) { return m.sens === 'entree' && enc(m) && !isInternal(m); });
     var outMv = monthMv.filter(function (m) { return m.sens === 'sortie' && enc(m) && !isInternal(m); });
     var inTot = sumBy(inMv), outTot = sumBy(outMv), inCats = groupCats(inMv), outCats = groupCats(outMv);
-    $('a-title').textContent = '📊 Rentré et dépensé en ' + MONTHS[mo];
-    $('a-in-total').textContent = eur0(Math.round(inTot)); $('a-out-total').textContent = eur0(Math.round(outTot));
-    var maxTot = Math.max(inTot, outTot, 1);
-    fillStack($('a-in'), inCats, inTot, maxTot); fillStack($('a-out'), outCats, outTot, maxTot);
-    var any = inMv.length || outMv.length, dm = inTot - outTot, ad = $('a-delta');
-    ad.className = 'delta ' + (any ? (dm >= 0 ? 'good' : 'bad') : 'idle'); ad.textContent = any ? signed(dm) : '—';
-    var aside = $('a-aside'); aside.innerHTML = '';
-    var setAside = sumBy(monthMv.filter(function (m) { return m.sens === 'sortie' && enc(m) && m.nature === 'epargne'; }));
-    var moved = sumBy(monthMv.filter(function (m) { return m.sens === 'sortie' && enc(m) && m.nature === 'virement_interne'; }));
-    if (setAside) aside.appendChild(asideItem('epargne', 'mis de côté : ' + eur(setAside)));
-    if (moved) aside.appendChild(asideItem('vir', 'déplacé vers ' + cptDep + ' : ' + eur(moved) + ', toujours à toi'));
-    $('a-note').textContent = !any ? 'Rien ce mois-ci pour l’instant.' : (dm < 0 ? 'La colonne de gauche est plus basse : ce mois-ci, ' + eur(-dm) + ' de plus sont sortis que rentrés.' : 'Ce mois-ci, ' + eur(dm) + ' de plus sont rentrés que sortis. Les virements et l’épargne ne sont pas des dépenses : ils sont comptés à part.');
-
     fillBars($('b-out'), outCats, outTot); fillBars($('b-in'), inCats, inTot);
     $('out-title').textContent = '💸 Dépensé en ' + MONTHS[mo] + ', par catégorie';
     $('in-title').textContent = '💰 Rentré en ' + MONTHS[mo] + ', par catégorie';
@@ -604,10 +622,6 @@ details.det{font-size:13px} details.det summary{cursor:pointer;color:var(--accen
     var outRows = $('out-rows'); outRows.innerHTML = '';
     monthMv.filter(function (m) { return m.sens === 'sortie' && enc(m); }).sort(function (a, b) { return a._d - b._d; }).forEach(function (m) { outRows.appendChild(rowFor(m, false)); });
     if (!outRows.children.length) outRows.appendChild(el('li', 'empty', 'Rien de sorti ce mois-ci pour l’instant.'));
-
-    // ---- pro : Presta et Magie ----
-    var proMv = outMv.filter(isPro), proTot = sumBy(proMv);
-    fillBars($('pro-bars'), groupCats(proMv), proTot); $('pro-total').textContent = eur(proTot);
 
     // ---- charges fixes ----
     var fixRows = $('fix-rows'); fixRows.innerHTML = '';
@@ -696,39 +710,212 @@ details.det{font-size:13px} details.det summary{cursor:pointer;color:var(--accen
   }
   function asideItem(key, text) { var sp = el('span'); sp.appendChild(pi(key)); sp.appendChild(document.createTextNode(text)); return sp; }
 
-  function renderSolde(today, mv, monthMv, cptDep) {
+  // ---------- flux par compte (base du solde et du graphique) ----------
+  // Chaque flux : { d, v (positif), sens, cat, acc, hatch (prévu ou projeté), proj }
+  var FLOWS = [];
+  function buildFlows(today, mv, charges) {
+    FLOWS = [];
+    var main = mainAcc();
+    mv.forEach(function (m) {
+      var prevu = (m.statut || 'encaisse') === 'prevu';
+      var from = accId(m.compte) || main;
+      if (isInternal(m)) {
+        var to = accId(m.vers);
+        var cat = to === 'liquide' || from === 'liquide' ? 'liquide' : (m.nature === 'epargne' ? 'epargne' : 'vir');
+        FLOWS.push({ d: m._d, v: m._amt, sens: 'sortie', cat: cat, acc: from, hatch: prevu, internal: true, other: to });
+        if (to) FLOWS.push({ d: m._d, v: m._amt, sens: 'entree', cat: cat, acc: to, hatch: prevu, internal: true, other: from });
+        return;
+      }
+      FLOWS.push({ d: m._d, v: m._amt, sens: m.sens, cat: catOf(m), acc: from, hatch: prevu, internal: false });
+    });
+    // charges fixes à venir (non payées), projetées sur 15 mois depuis le compte principal
+    var y0 = today.getFullYear(), m0 = today.getMonth();
+    for (var k = 0; k < 15; k++) {
+      var d0 = new Date(y0, m0 + k, 1), y = d0.getFullYear(), mo = d0.getMonth(), dim = new Date(y, mo + 1, 0).getDate();
+      charges.forEach(function (c) {
+        if (!chargeInMonth(c, mo)) return;
+        var day = chargeDue(c, y, mo), amt = num(c.montant); if (!day || amt == null) return;
+        var d = new Date(y, mo, Math.min(day, dim)); if (d <= today) return;
+        var paid = mv.some(function (m) { return m.charge_id === c.id && m.sens === 'sortie' && m._d.getMonth() === mo && m._d.getFullYear() === y; });
+        if (paid) return;
+        FLOWS.push({ d: d, v: amt, sens: 'sortie', cat: catOf({ categorie: c.categorie, nature: 'charge' }), acc: main, hatch: true, proj: true, internal: false });
+      });
+    }
+  }
+  function balanceAt(id, T, withFuture) { // solde estimé d’un compte à la fin du jour T
+    var an = anchorOf(id); if (!an) return null;
+    var d = an.d || T, bal = an.v;
+    FLOWS.forEach(function (f) {
+      if (f.acc !== id) return;
+      if (!withFuture && f.hatch) return;
+      var sg = f.sens === 'entree' ? 1 : -1;
+      if (f.d > d && f.d <= T) bal += sg * f.v;
+      else if (f.d <= d && f.d > T) bal -= sg * f.v;
+    });
+    return bal;
+  }
+
+  function renderSolde(today, monthMv) {
     var accEl = $('accounts'); accEl.innerHTML = '';
-    var cptP = PS('compte_principal') || 'CMB';
-    var names = Object.keys(state.params).filter(function (k) { return k.indexOf('solde_') === 0; }).map(function (k) { return k.slice(6); });
-    [cptP, cptDep].forEach(function (n) { if (n && names.indexOf(n) < 0) names.push(n); });
-    var total = 0, missing = 0, known = 0;
-    names.forEach(function (n) {
-      var lower = n.toLowerCase(), p = state.params['solde_' + n], v = P('solde_' + n);
-      var isSav = /livret|epargne|épargne|reserve|réserve/.test(lower), isMain = lower === cptP.toLowerCase();
-      var acc = el('div', 'acc'); acc.style.setProperty('--c', isSav ? 'var(--c-epargne)' : (isMain ? 'var(--c-logement)' : 'var(--c-cachet)'));
-      acc.appendChild(el('span', 'pi', isSav ? '🐷' : (isMain ? '💳' : '📱')));
-      var mid = el('div'); mid.appendChild(el('b', null, n));
-      if (v == null) { mid.appendChild(el('small', null, 'solde inconnu')); acc.appendChild(mid); acc.appendChild(el('span', 'amt q', '?')); accEl.appendChild(acc); missing++; return; }
-      var d = p && p.date ? new Date(p.date) : null, est = v;
-      if (d && !isNaN(d)) {
-        mv.forEach(function (m) {
-          if ((m.statut || 'encaisse') === 'prevu' || !(m._d > d) || m._d > today) return;
-          var from = (m.compte || cptP).toLowerCase() === lower;
-          var to = (m.nature === 'virement_interne' && (m.vers || '').toLowerCase() === lower) || (isSav && m.nature === 'epargne' && m.sens === 'sortie' && !from);
-          if (from) est += (m.sens === 'entree' ? 1 : -1) * m._amt; else if (to) est += m._amt;
-        });
-        mid.appendChild(el('small', null, 'relevé du ' + fmtShort(d) + (Math.abs(est - v) > 0.001 ? ', mouvements depuis inclus' : '')));
-      } else mid.appendChild(el('small', null, 'date du relevé inconnue'));
+    var total = 0, missing = [], known = 0;
+    ACCOUNTS.forEach(function (a) {
+      var an = anchorOf(a.id);
+      var acc = el('div', 'acc'); acc.style.setProperty('--c', a.c);
+      acc.appendChild(el('span', 'pi', a.e));
+      var mid = el('div'); mid.appendChild(el('b', null, a.l));
+      if (!an) { mid.appendChild(el('small', null, 'solde inconnu')); acc.appendChild(mid); acc.appendChild(el('span', 'amt q', '?')); accEl.appendChild(acc); missing.push(a.l); return; }
+      var est = balanceAt(a.id, today, false);
+      mid.appendChild(el('small', null, an.d ? 'solde du ' + fmtShort(an.d) + (Math.abs(est - an.v) > 0.001 ? ', mouvements depuis inclus' : '') : 'date du solde inconnue'));
       acc.appendChild(mid); acc.appendChild(el('span', 'amt' + (est < 0 ? ' no' : ''), eur(est))); accEl.appendChild(acc);
       total += est; known++;
     });
     var big = $('solde-big'); big.textContent = known ? eur(total) : '—';
-    big.className = 'big num ' + (missing || !known ? 'idle' : (total < 0 ? 'bad' : 'good'));
+    big.className = 'big num ' + (missing.length || !known ? 'idle' : (total < 0 ? 'bad' : 'good'));
     var ins = monthMv.filter(function (m) { return m.sens === 'entree' && (m.statut || 'encaisse') !== 'prevu' && !isInternal(m); });
     var outs = monthMv.filter(function (m) { return m.sens === 'sortie' && (m.statut || 'encaisse') !== 'prevu' && !isInternal(m); });
     var any = ins.length || outs.length, dm = sumBy(ins) - sumBy(outs), dEl = $('solde-delta');
     dEl.className = 'delta ' + (any ? (dm >= 0 ? 'good' : 'bad') : 'idle'); dEl.textContent = (any ? signed(dm) : '—') + ' ce mois-ci';
-    $('solde-note').textContent = missing ? 'Il manque le solde de ' + missing + ' compte' + (missing > 1 ? 's' : '') + ' : le total est incomplet. Dis-le à ton Claude, par exemple « Revolut est à 312 € ce matin ».' : 'Somme de tes comptes, à partir du dernier solde donné pour chacun, plus les mouvements depuis. « Ce mois-ci » = rentré − dépensé, virements et épargne exclus.';
+    $('solde-note').textContent = missing.length ? 'Il manque ' + (missing.length > 1 ? 'les soldes de ' : 'le solde de ') + missing.join(', ') + ' : le total est incomplet. Dis-le à ton Claude, par exemple « Revolut est à 312 € ce matin ».' : 'Somme de tes quatre sources d’argent, à partir du dernier solde donné pour chacune, plus les mouvements depuis. « Ce mois-ci » = rentré − dépensé, virements et épargne exclus.';
+  }
+
+  // ---------- vue d’ensemble : graphique par période ----------
+  var chartMode = 'mois', chartSel = null; // chartSel : liste d’ids de comptes affichés
+  try { var pm = localStorage.getItem('sib-chart-mode'); if (pm === 'semaine' || pm === 'mois' || pm === 'annee') chartMode = pm; var ps = JSON.parse(localStorage.getItem('sib-chart-acc') || 'null'); if (Array.isArray(ps) && ps.length) chartSel = ps; } catch (e) {}
+  if (!chartSel) chartSel = ACCOUNTS.map(function (a) { return a.id; });
+  function saveChartPrefs() { try { localStorage.setItem('sib-chart-mode', chartMode); localStorage.setItem('sib-chart-acc', JSON.stringify(chartSel)); } catch (e) {} }
+  Array.prototype.forEach.call(document.querySelectorAll('#seg-per button'), function (btn) {
+    btn.addEventListener('click', function () { chartMode = btn.dataset.v; saveChartPrefs(); if (state) renderChart(new Date()); });
+  });
+  (function buildChips() {
+    var box = $('acc-chips'); box.innerHTML = '';
+    ACCOUNTS.forEach(function (a) {
+      var b = el('button'); b.type = 'button'; b.style.setProperty('--c', a.c); b.dataset.acc = a.id;
+      b.appendChild(el('span', 'pi', a.e)); b.appendChild(el('span', null, a.l)); b.appendChild(el('small', null, ''));
+      b.addEventListener('click', function () {
+        var i = chartSel.indexOf(a.id);
+        if (i >= 0) { if (chartSel.length === 1) chartSel = ACCOUNTS.map(function (x) { return x.id; }); else chartSel.splice(i, 1); } else chartSel.push(a.id);
+        saveChartPrefs(); if (state) renderChart(new Date());
+      });
+      box.appendChild(b);
+    });
+  })();
+  function periodsFor(mode, today) {
+    var list = [], y = today.getFullYear(), mo = today.getMonth();
+    if (mode === 'annee') { for (var k = -2; k <= 1; k++) list.push({ start: new Date(y + k, 0, 1), end: new Date(y + k, 11, 31), label: String(y + k) }); }
+    else if (mode === 'mois') { for (var k2 = -4; k2 <= 3; k2++) { var st = new Date(y, mo + k2, 1); list.push({ start: st, end: new Date(st.getFullYear(), st.getMonth() + 1, 0), label: MONTHS_S[st.getMonth()] + (st.getFullYear() !== y ? ' ' + String(st.getFullYear()).slice(2) : '') }); } }
+    else { var wm = monday(today); for (var k3 = -5; k3 <= 3; k3++) { var ws = addDays(wm, 7 * k3); list.push({ start: ws, end: addDays(ws, 6), label: ws.getDate() + ' ' + MONTHS_S[ws.getMonth()] }); } }
+    list.forEach(function (p) { p.end.setHours(23, 59, 59, 999); p.future = p.start > today; p.current = p.start <= today && today <= p.end; });
+    return list;
+  }
+  function fmtK(v) { var a = Math.abs(v); return (a >= 10000 ? Math.round(a / 1000) + ' k' : Math.round(a).toLocaleString('fr-FR')); }
+  var CAT_ORDER = Object.keys(CATS);
+  function svgEl(tag, attrs) { var e = document.createElementNS('http://www.w3.org/2000/svg', tag); for (var k in attrs) e.setAttribute(k, attrs[k]); return e; }
+  function renderChart(today) {
+    Array.prototype.forEach.call(document.querySelectorAll('#seg-per button'), function (b) { b.setAttribute('aria-pressed', b.dataset.v === chartMode); });
+    Array.prototype.forEach.call(document.querySelectorAll('#acc-chips button'), function (b) {
+      var on = chartSel.indexOf(b.dataset.acc) >= 0; b.setAttribute('aria-pressed', on);
+      var an = anchorOf(b.dataset.acc); b.querySelector('small').textContent = an ? '' : '?';
+    });
+    var sel = {}; chartSel.forEach(function (id) { sel[id] = true; });
+    var periods = periodsFor(chartMode, today);
+    var horizon = periods[periods.length - 1].end;
+    // agrégation par période
+    periods.forEach(function (p) { p.inC = {}; p.outC = {}; p.inT = 0; p.outT = 0; p.inH = 0; p.outH = 0; });
+    var used = {};
+    FLOWS.forEach(function (f) {
+      if (!sel[f.acc]) return;
+      if (f.internal && f.other && sel[f.other]) return; // entre deux comptes affichés : ça ne change rien au total
+      if (f.d > horizon) return;
+      for (var i = 0; i < periods.length; i++) {
+        var p = periods[i]; if (f.d < p.start || f.d > p.end) continue;
+        var bag = f.sens === 'entree' ? p.inC : p.outC; var key = f.cat + (f.hatch ? '~' : '');
+        bag[key] = (bag[key] || 0) + f.v; used[f.cat] = true;
+        if (f.sens === 'entree') { p.inT += f.v; if (f.hatch) p.inH += f.v; } else { p.outT += f.v; if (f.hatch) p.outH += f.v; }
+        break;
+      }
+    });
+    periods.forEach(function (p) { p.net = p.inT - p.outT; });
+    // ---- barres ----
+    var W = 720, n = periods.length, ml = 6, mr = 6, mt = 22, mb = 26;
+    var posMax = 1, negMax = 0;
+    periods.forEach(function (p) { posMax = Math.max(posMax, p.inT, p.outT, p.net); negMax = Math.max(negMax, -p.net); });
+    var plotH = 250, posH = plotH * posMax / (posMax + negMax), base = mt + posH, H = mt + plotH + mb;
+    var scale = posH / posMax;
+    var svg = svgEl('svg', { viewBox: '0 0 ' + W + ' ' + H, role: 'img', 'aria-label': 'Rentré, dépensé et solde par période' });
+    var defs = svgEl('defs');
+    CAT_ORDER.forEach(function (k) {
+      var pat = svgEl('pattern', { id: 'h-' + k, patternUnits: 'userSpaceOnUse', width: 6, height: 6, patternTransform: 'rotate(45)' });
+      pat.appendChild(svgEl('rect', { width: 6, height: 6, fill: cvar(k), 'fill-opacity': '0.22' }));
+      var ln = svgEl('line', { x1: 0, y1: 0, x2: 0, y2: 6, 'stroke-width': 2.4 }); ln.setAttribute('stroke', cvar(k)); pat.appendChild(ln);
+      defs.appendChild(pat);
+    });
+    svg.appendChild(defs);
+    var gw = (W - ml - mr) / n, bw = Math.max(8, Math.min(26, (gw - 14) / 3));
+    periods.forEach(function (p, i) {
+      var x0 = ml + i * gw, cx = x0 + gw / 2;
+      if (p.current) svg.appendChild(svgEl('rect', { x: x0 + 1, y: 4, width: gw - 2, height: H - 8, rx: 8, class: 'now' }));
+      var xIn = cx - bw * 1.5 - 4, xOut = cx - bw / 2, xNet = cx + bw / 2 + 4;
+      drawStack(svg, p.inC, xIn, base, bw, scale); drawStack(svg, p.outC, xOut, base, bw, scale);
+      if (p.inT) { var ti = svgEl('text', { x: xIn + bw / 2, y: base - p.inT * scale - 4, 'text-anchor': 'middle', class: 'val' }); ti.textContent = fmtK(p.inT); svg.appendChild(ti); }
+      if (p.outT) { var to = svgEl('text', { x: xOut + bw / 2, y: base - p.outT * scale - 4, 'text-anchor': 'middle', class: 'val' }); to.textContent = fmtK(p.outT); svg.appendChild(to); }
+      if (p.inT || p.outT) {
+        var nh = Math.abs(p.net) * scale, ny = p.net >= 0 ? base - nh : base;
+        var nr = svgEl('rect', { x: xNet, y: ny, width: bw, height: Math.max(1.5, nh), rx: 3, fill: p.net >= 0 ? 'var(--good)' : 'var(--bad)' });
+        if (p.future || (p.inH + p.outH) > 0.6 * (p.inT + p.outT)) nr.setAttribute('fill-opacity', '0.45');
+        svg.appendChild(nr);
+        var tn = svgEl('text', { x: xNet + bw / 2, y: p.net >= 0 ? ny - 4 : ny + nh + 11, 'text-anchor': 'middle', class: 'val ' + (p.net >= 0 ? 'good' : 'bad') }); tn.textContent = (p.net >= 0 ? '+' : '−') + fmtK(p.net); svg.appendChild(tn);
+      }
+      var lab = svgEl('text', { x: cx, y: H - 8, 'text-anchor': 'middle', class: 'per' + (p.future ? ' fut' : '') }); lab.textContent = p.label; svg.appendChild(lab);
+    });
+    svg.appendChild(svgEl('line', { x1: ml, y1: base, x2: W - mr, y2: base, class: 'grid' }));
+    var box = $('bars-svg'); box.innerHTML = ''; box.appendChild(svg);
+    // ---- ligne du solde global ----
+    var knownIds = chartSel.filter(function (id) { return !!anchorOf(id); });
+    var missing = chartSel.filter(function (id) { return !anchorOf(id); }).map(function (id) { return accOf(id).l; });
+    var lbox = $('line-svg'); lbox.innerHTML = '';
+    $('line-title').textContent = 'Solde global' + (knownIds.length ? ' · ' + knownIds.map(function (id) { return accOf(id).l; }).join(' + ') : '');
+    if (!knownIds.length) { $('line-note').textContent = 'Aucun solde connu pour ' + (missing.join(', ') || 'ces comptes') + ' : la ligne s’affichera dès que ton Claude aura un solde.'; }
+    else {
+      var pts = periods.map(function (p) { var T = p.current ? today : p.end; var v = 0; knownIds.forEach(function (id) { v += balanceAt(id, T, !p.current && p.future ? true : true); }); return { x: 0, v: v, future: p.future, current: p.current }; });
+      // le point de la période en cours = aujourd’hui ; les points futurs incluent les prévus et les charges à venir
+      var LW = W, LH = 96, lt = 14, lb = 8, vmin = Math.min(0, Math.min.apply(null, pts.map(function (q) { return q.v; }))), vmax = Math.max(0, Math.max.apply(null, pts.map(function (q) { return q.v; })));
+      if (vmax === vmin) vmax = vmin + 1;
+      var ly = function (v) { return lt + (vmax - v) / (vmax - vmin) * (LH - lt - lb); };
+      var lsvg = svgEl('svg', { viewBox: '0 0 ' + LW + ' ' + LH, role: 'img', 'aria-label': 'Solde global par période' });
+      if (vmin < 0 && vmax > 0) lsvg.appendChild(svgEl('line', { x1: ml, y1: ly(0), x2: LW - mr, y2: ly(0), class: 'zero' }));
+      pts.forEach(function (q, i) { q.x = ml + i * gw + gw / 2; q.y = ly(q.v); });
+      for (var i = 1; i < pts.length; i++) {
+        var a = pts[i - 1], b = pts[i];
+        var seg = svgEl('line', { x1: a.x, y1: a.y, x2: b.x, y2: b.y, 'stroke-width': 2.5, 'stroke-linecap': 'round' });
+        seg.setAttribute('stroke', b.future ? 'var(--faint)' : 'var(--accent)'); if (b.future) seg.setAttribute('stroke-dasharray', '5 5');
+        lsvg.appendChild(seg);
+      }
+      pts.forEach(function (q) {
+        var dot = svgEl('circle', { cx: q.x, cy: q.y, r: q.current ? 5 : 3.5 }); dot.setAttribute('fill', q.v < 0 ? 'var(--bad)' : (q.future ? 'var(--faint)' : 'var(--accent)')); lsvg.appendChild(dot);
+        var t = svgEl('text', { x: q.x, y: q.y - 8, 'text-anchor': 'middle', class: 'val ' + (q.v < 0 ? 'bad' : '') }); t.textContent = (q.v < 0 ? '−' : '') + fmtK(q.v); lsvg.appendChild(t);
+      });
+      lbox.appendChild(lsvg);
+      $('line-note').textContent = (missing.length ? 'Sans ' + missing.join(' ni ') + ' (solde inconnu). ' : '') + 'Points gris en pointillé = à venir, avec les cachets prévus et les charges fixes qui restent à payer.';
+    }
+    // ---- légende ----
+    var leg = $('chart-legend'); leg.innerHTML = '';
+    CAT_ORDER.forEach(function (k) { if (!used[k]) return; var sp = el('span'); sp.appendChild(pi(k)); sp.appendChild(document.createTextNode(CATS[k].l)); leg.appendChild(sp); });
+    var hs = el('span'); hs.appendChild(el('i', 'hatchsw')); hs.appendChild(document.createTextNode('hachuré = prévu, pas encore passé')); leg.appendChild(hs);
+    var futNoIn = periods.some(function (p) { return p.future && p.outT > 0; }) && !periods.some(function (p) { return p.future && p.inT > 0; });
+    $('chart-note').textContent = (chartSel.length === ACCOUNTS.length ? 'Les quatre sources ensemble : les virements entre tes comptes n’apparaissent pas, l’argent ne fait que changer de poche.' : 'Vue partielle : les virements vers ou depuis les comptes cachés apparaissent en 🔀.') + (futNoIn ? ' Aucune rentrée à venir n’est enregistrée : les périodes futures ne montrent que ce qui va sortir. Dis à ton Claude ce qui est attendu (« France Travail vers le 5 octobre, environ 1 380 € », « cachet 250 € le 18, pas encore payé »).' : '');
+  }
+  function drawStack(svg, bag, x, base, bw, scale) {
+    var y = base;
+    CAT_ORDER.forEach(function (k) {
+      [false, true].forEach(function (hatch) {
+        var v = bag[k + (hatch ? '~' : '')]; if (!v) return;
+        var h = v * scale; y -= h;
+        var r = svgEl('rect', { x: x, y: y, width: bw, height: Math.max(0.8, h) });
+        r.setAttribute('fill', hatch ? 'url(#h-' + k + ')' : cvar(k));
+        var title = svgEl('title'); title.textContent = CATS[k].l + (hatch ? ' (prévu)' : '') + ' · ' + eur(v); r.appendChild(title);
+        svg.appendChild(r);
+      });
+    });
   }
 
   function setTile(tile, cls, pill, big, ratio, subHtml, l1, l2) {
@@ -754,72 +941,6 @@ details.det{font-size:13px} details.det summary{cursor:pointer;color:var(--accen
     var cls = 'v' + (isIn ? (nat === 'revenu' && (m.statut || '') !== 'prevu' ? ' ok' : ' q') : ' no');
     li.appendChild(el('span', cls, (isIn ? '' : '− ') + eur(m._amt)));
     return li;
-  }
-
-  function renderCalendar(today, mv, charges, monthMv) {
-    var cptP = PS('compte_principal') || 'CMB';
-    var soldeP = state.params['solde_' + cptP];
-    var alert = $('alert'), cal = $('cal'); cal.innerHTML = '';
-    var horizon = addDays(today, 45);
-    var events = [];
-    // charges à venir (non payées) sur l'horizon
-    for (var k = 0; k < 2; k++) {
-      var y = today.getFullYear(), mo = today.getMonth() + k;
-      var d0 = new Date(y, mo, 1); y = d0.getFullYear(); mo = d0.getMonth();
-      charges.forEach(function (c) {
-        if (!chargeInMonth(c, mo)) return;
-        var day = chargeDue(c, y, mo); var amt = num(c.montant); if (!day || amt == null) return;
-        var d = new Date(y, mo, Math.min(day, new Date(y, mo + 1, 0).getDate()));
-        if (d < today || d > horizon) return;
-        var paid = mv.some(function (m) { return m.charge_id === c.id && m.sens === 'sortie' && m._d.getMonth() === mo && m._d.getFullYear() === y; });
-        if (paid) return;
-        events.push({ d: d, label: c.libelle, amt: -amt, verif: !!c.verif });
-      });
-    }
-    // mouvements prévus
-    mv.forEach(function (m) {
-      if ((m.statut || '') !== 'prevu' || m._d < today || m._d > horizon) return;
-      events.push({ d: m._d, label: m.libelle + ' (prévu)', amt: (m.sens === 'entree' ? 1 : -1) * m._amt, verif: !!m.verif, prevu: true });
-    });
-    events.sort(function (a, b) { return a.d - b.d; });
-
-    var start = null, startDate = null;
-    if (soldeP && P('solde_' + cptP) != null) {
-      start = P('solde_' + cptP); startDate = soldeP.date ? new Date(soldeP.date) : null;
-      if (startDate && !isNaN(startDate)) {
-        // mouvements encaissés sur le compte principal après la date du solde
-        mv.forEach(function (m) {
-          if ((m.statut || 'encaisse') === 'prevu') return;
-          if ((m.compte || cptP) !== cptP) return;
-          if (m._d > startDate && m._d <= today) start += (m.sens === 'entree' ? 1 : -1) * m._amt;
-        });
-      }
-    }
-    var bal = start, minBal = start, minDate = null;
-    events.forEach(function (e) { if (bal != null) { bal += e.amt; e.bal = bal; if (bal < minBal) { minBal = bal; minDate = e.d; } } });
-
-    var cls, h, p;
-    if (start == null) {
-      cls = 'idle'; h = 'Je n’ai pas de solde de départ';
-      p = 'Donne à ton Claude le solde du compte ' + cptP + ' et sa date (« le CMB est à 312 € ce matin ») : je pourrai dire si un découvert arrive.' + (events.length ? ' Voici quand même ce qui va tomber :' : '');
-    } else {
-      var soldeTxt = 'Solde estimé du ' + cptP + ' aujourd’hui : ' + eur(start) + (startDate && !isNaN(startDate) ? ' (à partir du relevé du ' + fmtShort(startDate) + ')' : '') + '.';
-      if (!events.length) { cls = start < 0 ? 'bad' : 'good'; h = start < 0 ? 'Le compte est à découvert' : 'Rien de daté à venir'; p = soldeTxt + ' Aucune charge ni cachet daté dans les 45 prochains jours.'; }
-      else if (minBal < 0) { cls = 'bad'; h = 'Découvert prévu le ' + fmtDay(minDate) + ' : ' + eur(minBal); p = soldeTxt + ' Avec les charges à venir et les cachets prévus, le compte passe à ' + eur(minBal) + '. C’est un trou de ' + eur(-minBal) + ' à prévoir avant cette date.'; }
-      else if (minBal < 100) { cls = 'warn'; h = 'Ça passe, mais de justesse'; p = soldeTxt + ' Point le plus bas dans les 45 jours : ' + eur(minBal) + ' le ' + fmtDay(minDate) + '.'; }
-      else { cls = 'good'; h = 'Les 45 prochains jours tiennent'; p = soldeTxt + ' Point le plus bas : ' + eur(minBal) + (minDate ? ' le ' + fmtDay(minDate) : '') + '.'; }
-    }
-    alert.className = 'alert ' + cls;
-    $('alert-ic').textContent = cls === 'bad' ? '🚨' : cls === 'warn' ? '⚠️' : cls === 'good' ? '✅' : '🗓️';
-    $('alert-h').textContent = h; $('alert-p').textContent = p;
-    events.slice(0, 12).forEach(function (e) {
-      var li = el('li', e.bal != null && e.bal < 0 ? 'neg' : '');
-      li.appendChild(el('span', 'd', fmtDay(e.d)));
-      var lbl = el('span', 'lbl', e.label + (e.verif ? ' · à vérifier' : '')); li.appendChild(lbl);
-      li.appendChild(el('span', 'amt ' + (e.amt < 0 ? '' : 'ok'), signed(e.amt)));
-      li.appendChild(el('span', 'bal', e.bal != null ? '→ ' + eur(e.bal) : ''));
-      cal.appendChild(li);
-    });
   }
 
   // ---------- boot ----------
