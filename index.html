@@ -219,7 +219,8 @@ details.det{font-size:13px} details.det summary{cursor:pointer;color:var(--accen
 .chips button small{color:rgba(255,255,255,.85);font-weight:500} .chips button[aria-pressed="false"] small{color:var(--muted)}
 .chart svg{display:block;width:100%;height:auto}
 .chart svg text{font-family:"IBM Plex Sans",ui-sans-serif,system-ui,sans-serif;font-size:11px;fill:var(--muted);font-variant-numeric:tabular-nums}
-.chart svg text.val{fill:var(--text);font-weight:600;font-size:10.5px}
+.chart svg text.val{fill:var(--text);font-weight:600;font-size:8.5px}
+.chart svg text.val.in{fill:var(--c-ft)} .chart svg text.val.out{fill:var(--c-logement)}
 .chart svg text.val.good{fill:var(--good)} .chart svg text.val.bad{fill:var(--bad)}
 .chart svg text.per{fill:var(--text);font-weight:600;font-size:11.5px}
 .chart svg text.per.fut{fill:var(--faint);font-weight:500}
@@ -850,8 +851,8 @@ details.det{font-size:13px} details.det summary{cursor:pointer;color:var(--accen
       drawStack(gIn, p.inC, xIn, base, bw, scale); drawStack(gOut, p.outC, xOut, base, bw, scale);
       if (p.inT) attachTip(gIn, function () { return tipFor(p, 'entree'); });
       if (p.outT) attachTip(gOut, function () { return tipFor(p, 'sortie'); });
-      if (p.inT) { var ti = svgEl('text', { x: xIn + bw / 2, y: base - p.inT * scale - 4, 'text-anchor': 'middle', class: 'val' }); ti.textContent = fmtK(p.inT); svg.appendChild(ti); }
-      if (p.outT) { var to = svgEl('text', { x: xOut + bw / 2, y: base - p.outT * scale - 4, 'text-anchor': 'middle', class: 'val' }); to.textContent = fmtK(p.outT); svg.appendChild(to); }
+      if (p.inT) { var ti = svgEl('text', { x: xIn + bw / 2, y: base - p.inT * scale - 3, 'text-anchor': 'middle', class: 'val in' }); ti.textContent = '+' + fmtK(p.inT); svg.appendChild(ti); }
+      if (p.outT) { var to = svgEl('text', { x: xOut + bw / 2, y: base - p.outT * scale - 3, 'text-anchor': 'middle', class: 'val out' }); to.textContent = '−' + fmtK(p.outT); svg.appendChild(to); }
       if (p.inT || p.outT) {
         var nh = Math.abs(p.net) * scale, ny = p.net >= 0 ? base - nh : base;
         var nr = svgEl('rect', { x: xNet, y: ny, width: bw, height: Math.max(1.5, nh), rx: 3, fill: p.net >= 0 ? 'var(--good)' : 'var(--bad)' });
