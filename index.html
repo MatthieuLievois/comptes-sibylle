@@ -168,9 +168,9 @@ button{font:inherit; cursor:pointer}
 @media (max-width:520px){ .cal li{grid-template-columns:auto minmax(0,1fr) auto; column-gap:8px} .cal .bal{grid-column:2 / 4; text-align:left; min-width:0} }
 
 /* ---- catégories (validées le 13/09/2026) ---- */
-:root{--c-ft:#1F5FBF;--c-cachet:#5B3FBF;--c-remb:#4F8FB0;--c-aide:#1C9C9C;--c-logement:#C84B31;--c-abo:#E8761B;--c-assur:#7B2D26;--c-impots:#5B3A21;--c-courses:#D9A400;--c-transp:#F0705C;--c-tabac:#8C6A1F;--c-sante:#E0507A;--c-loisirs:#C23FA0;--c-presta:#8F2E6B;--c-magie:#5E1F33;--c-vir:#9A9AB0;--c-epargne:#6F8F8A;--c-inc:#8A8A9C;--c-liquide:#86917A}
-@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){--c-magie:#9A4A6B;--c-impots:#9C6B3C;--c-assur:#B0483F;--c-tabac:#B58A33;--c-inc:#7C7C92;--c-cachet:#8B74E0} }
-:root[data-theme="dark"]{--c-magie:#9A4A6B;--c-impots:#9C6B3C;--c-assur:#B0483F;--c-tabac:#B58A33;--c-inc:#7C7C92;--c-cachet:#8B74E0}
+:root{--c-ft:#14532D;--c-cachet:#22A03C;--c-remb:#1CA48F;--c-aide:#9BC53D;--c-logement:#DC2626;--c-abo:#F97316;--c-courses:#D4A017;--c-tabac:#8B4513;--c-impots:#1F2937;--c-assur:#2563EB;--c-transp:#06B6D4;--c-loisirs:#7C3AED;--c-presta:#C026D3;--c-sante:#F472B6;--c-magie:#4A1259;--c-vir:#9CA3AF;--c-epargne:#94A3B8;--c-inc:#6B7280;--c-liquide:#78716C}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){--c-ft:#2F7D4A;--c-impots:#6B7280;--c-magie:#8B3FA8;--c-tabac:#B5651D;--c-inc:#7C7C92} }
+:root[data-theme="dark"]{--c-ft:#2F7D4A;--c-impots:#6B7280;--c-magie:#8B3FA8;--c-tabac:#B5651D;--c-inc:#7C7C92}
 .pi{display:inline-flex;width:24px;height:24px;border-radius:7px;background:var(--c);border:2px solid var(--c);align-items:center;justify-content:center;font-size:13px;flex:none;line-height:1;
   text-shadow:-1px -1px 0 #fff,1px -1px 0 #fff,-1px 1px 0 #fff,1px 1px 0 #fff,0 -1.4px 0 #fff,0 1.4px 0 #fff,-1.4px 0 0 #fff,1.4px 0 0 #fff}
 .acc .pi, .chips button[aria-pressed="true"] .pi{background:#fff;border-color:#fff;text-shadow:none}
@@ -224,7 +224,7 @@ details.det{font-size:13px} details.det summary{cursor:pointer;color:var(--accen
 .chart svg{display:block;width:100%;height:auto}
 .chart svg text{font-family:"IBM Plex Sans",ui-sans-serif,system-ui,sans-serif;font-size:11px;fill:var(--muted);font-variant-numeric:tabular-nums}
 .chart svg text.val{fill:var(--text);font-weight:600;font-size:8.5px}
-.chart svg text.val.in{fill:var(--c-ft)} .chart svg text.val.out{fill:var(--c-logement)}
+.chart svg text.val.in{fill:var(--good)} .chart svg text.val.out{fill:var(--bad)}
 .chart svg text.val.good{fill:var(--good)} .chart svg text.val.bad{fill:var(--bad)}
 .chart svg text.per{fill:var(--text);font-weight:600;font-size:11.5px}
 .chart svg text.per.fut{fill:var(--faint);font-weight:500}
@@ -829,7 +829,7 @@ details.det{font-size:13px} details.det summary{cursor:pointer;color:var(--accen
   }
   function fmtK(v) { var a = Math.abs(v); return (a >= 10000 ? Math.round(a / 1000) + ' k' : Math.round(a).toLocaleString('fr-FR')); }
   var CAT_IN = ['ft', 'cachet', 'remb', 'aide'];
-  var CAT_OUT = ['impots', 'tabac', 'courses', 'abo', 'transp', 'logement', 'assur', 'sante', 'loisirs', 'presta', 'magie'];
+  var CAT_OUT = ['logement', 'abo', 'courses', 'tabac', 'impots', 'assur', 'transp', 'loisirs', 'presta', 'sante', 'magie'];
   var CAT_NEUTRAL = ['vir', 'liquide', 'epargne', 'inc'];
   var CAT_ORDER = CAT_IN.concat(CAT_OUT, CAT_NEUTRAL);
   function svgEl(tag, attrs) { var e = document.createElementNS('http://www.w3.org/2000/svg', tag); for (var k in attrs) e.setAttribute(k, attrs[k]); return e; }
@@ -930,7 +930,7 @@ details.det{font-size:13px} details.det summary{cursor:pointer;color:var(--accen
       keys.forEach(function (k) { var row = el('div', 'legrow' + (used[k] ? '' : ' dim')); row.style.setProperty('--c', cvar(k)); row.appendChild(el('span', 'pi', CATS[k].e)); row.appendChild(el('span', null, CATS[k].l)); col.appendChild(row); });
       return col;
     }
-    leg.appendChild(legCol('Rentré · froid', CAT_IN, 'in')); leg.appendChild(legCol('Dépensé · chaud', CAT_OUT, 'out'));
+    leg.appendChild(legCol('Rentré · les verts', CAT_IN, 'in')); leg.appendChild(legCol('Dépensé · toutes les autres couleurs', CAT_OUT, 'out'));
     var neutral = el('div', 'legneutral');
     CAT_NEUTRAL.forEach(function (k) { var sp = el('span', 'legrow small' + (used[k] ? '' : ' dim')); sp.style.setProperty('--c', cvar(k)); sp.appendChild(el('span', 'pi', CATS[k].e)); sp.appendChild(el('span', null, CATS[k].l)); neutral.appendChild(sp); });
     var hs = el('span', 'legrow small hatch'); hs.appendChild(el('i', 'hatchsw')); hs.appendChild(el('span', null, 'hachuré = prévu, pas encore passé')); neutral.appendChild(hs);
