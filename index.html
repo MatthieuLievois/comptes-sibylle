@@ -81,7 +81,7 @@ button{font:inherit; cursor:pointer}
 .mnav{display:inline-flex;align-items:center;gap:4px}
 .mnav button{border:1px solid var(--line);background:var(--surface);box-shadow:none;padding:4px 9px;border-radius:8px;font-size:12px;color:var(--muted)}
 .mnav button:disabled{opacity:.35;cursor:default}
-.mnav .chip{font-size:13px;padding:4px 11px;text-transform:capitalize}
+.mnav .chip{font-size:13px;padding:4px 11px}
 .when{font-size:13px; color:var(--muted); font-variant-numeric:tabular-nums}
 .when.err{color:var(--bad); font-weight:600}
 
@@ -190,6 +190,8 @@ button{font:inherit; cursor:pointer}
 .acc{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;padding:8px 10px;border-radius:12px;border:2px solid var(--c);background:var(--c);color:#fff;min-width:0}
 .acc .pi{width:30px;height:30px;font-size:16px;border-radius:9px}
 .acc b{display:block;font-size:14px;color:#fff} .acc small{color:rgba(255,255,255,.85);font-size:11.5px;display:block}
+.acc .sub{grid-column:1 / -1;display:flex;justify-content:space-between;gap:8px;border-top:1px solid rgba(255,255,255,.35);padding-top:5px;margin-top:2px;font-size:12.5px;color:rgba(255,255,255,.92)}
+.acc .sub .q{color:rgba(255,255,255,.7)}
 .acc .amt{font-variant-numeric:tabular-nums;font-weight:700;white-space:nowrap;color:#fff} .acc .amt.no{color:#fff;text-decoration:underline;text-decoration-color:rgba(255,255,255,.6);text-underline-offset:3px} .acc .amt.q{color:rgba(255,255,255,.75);font-weight:500}
 /* ---- vue A : deux colonnes proportionnelles ---- */
 .stackwrap{display:grid;grid-template-columns:1fr auto 1fr;grid-template-rows:300px;gap:10px;align-items:end}
@@ -408,8 +410,10 @@ details.det{font-size:13px} details.det summary{cursor:pointer;color:var(--accen
     { id: 'cmb_bretagne', l: 'CMB Bretagne', e: '💳', c: '#2F5170', al: ['cmb', 'cmbb', 'cmbbretagne', 'bretagne', 'cheques', 'chequescmb'] },
     { id: 'cmb_grenoble', l: 'CMB Grenoble', e: '🏦', c: '#3F9A9B', al: ['cmbg', 'cmbgrenoble', 'grenoble'] },
     { id: 'revolut', l: 'Revolut', e: '📱', c: '#D2302C', al: ['revolut', 'revo'] },
-    { id: 'liquide', l: 'Liquide', e: '💵', c: '#DDA231', al: ['liquide', 'cash', 'especes', 'espece', 'liquid'] }
+    { id: 'liquide', l: 'Liquide', e: '💵', c: '#DDA231', al: ['liquide', 'cash', 'especes', 'espece', 'liquid'] },
+    { id: 'livret', l: 'Livret Librissime', e: '🐷', c: '#2F5170', parent: 'cmb_bretagne', al: ['livret', 'librissime', 'livretlibrissime', 'epargne', 'livretcmb'] }
   ];
+  var TOP_ACCOUNTS = ACCOUNTS.filter(function (a) { return !a.parent; });
   function accId(name) {
     var n = String(name || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '');
     if (!n) return null;
@@ -565,7 +569,7 @@ details.det{font-size:13px} details.det summary{cursor:pointer;color:var(--accen
     var weekNo = Math.floor((today.getDate() - 1 + ((mStart.getDay() + 6) % 7)) / 7) + 1;
     var prenom = PS('prenom');
 
-    $('m-label').textContent = (monthOffset === 0 ? 'ce mois-ci · ' : '') + MONTHS[mo] + ' ' + y;
+    $('m-label').textContent = MONTHS[mo].charAt(0).toUpperCase() + MONTHS[mo].slice(1) + ' ' + y + (monthOffset === 0 ? ' · ce mois-ci' : '');
     $('m-next').disabled = monthOffset >= 1;
     if (s.updated) { var u = new Date(s.updated); $('when').textContent = isNaN(u) ? 'mis à jour : ' + s.updated : 'mis à jour ' + fmtShort(u) + ' à ' + pad(u.getHours()) + ':' + pad(u.getMinutes()); }
     else $('when').textContent = 'coffre chargé';
@@ -736,8 +740,8 @@ details.det{font-size:13px} details.det summary{cursor:pointer;color:var(--accen
       var prevu = (m.statut || 'encaisse') === 'prevu';
       var from = accId(m.compte) || main;
       if (isInternal(m)) {
-        var to = accId(m.vers);
-        var cat = to === 'liquide' || from === 'liquide' ? 'liquide' : (m.nature === 'epargne' ? 'epargne' : 'vir');
+        var to = accId(m.vers) || (m.nature === 'epargne' ? 'livret' : null);
+        var cat = to === 'liquide' || from === 'liquide' ? 'liquide' : (m.nature === 'epargne' || to === 'livret' ? 'epargne' : 'vir');
         FLOWS.push({ d: m._d, v: m._amt, sens: 'sortie', cat: cat, acc: from, hatch: prevu, internal: true, other: to });
         if (to) FLOWS.push({ d: m._d, v: m._amt, sens: 'entree', cat: cat, acc: to, hatch: prevu, internal: true, other: from });
         return;
@@ -774,16 +778,27 @@ details.det{font-size:13px} details.det summary{cursor:pointer;color:var(--accen
   function renderSolde(today, monthMv, whenLabel) {
     var accEl = $('accounts'); accEl.innerHTML = '';
     var total = 0, missing = [], known = 0;
-    ACCOUNTS.forEach(function (a) {
+    TOP_ACCOUNTS.forEach(function (a) {
       var an = anchorOf(a.id);
       var acc = el('div', 'acc'); acc.style.setProperty('--c', a.c);
       acc.appendChild(el('span', 'pi', a.e));
       var mid = el('div'); mid.appendChild(el('b', null, a.l));
-      if (!an) { mid.appendChild(el('small', null, 'solde inconnu')); acc.appendChild(mid); acc.appendChild(el('span', 'amt q', '?')); accEl.appendChild(acc); missing.push(a.l); return; }
-      var est = balanceAt(a.id, today, false);
-      mid.appendChild(el('small', null, an.d ? 'solde du ' + fmtShort(an.d) + (Math.abs(est - an.v) > 0.001 ? ', mouvements depuis inclus' : '') : 'date du solde inconnue'));
-      acc.appendChild(mid); acc.appendChild(el('span', 'amt' + (est < 0 ? ' no' : ''), eur(est))); accEl.appendChild(acc);
-      total += est; known++;
+      var est = null;
+      if (!an) { mid.appendChild(el('small', null, 'solde inconnu')); acc.appendChild(mid); acc.appendChild(el('span', 'amt q', '?')); missing.push(a.l); }
+      else {
+        est = balanceAt(a.id, today, false);
+        mid.appendChild(el('small', null, an.d ? 'solde du ' + fmtShort(an.d) + (Math.abs(est - an.v) > 0.001 ? ', mouvements depuis inclus' : '') : 'date du solde inconnue'));
+        acc.appendChild(mid); acc.appendChild(el('span', 'amt' + (est < 0 ? ' no' : ''), eur(est)));
+        total += est; known++;
+      }
+      ACCOUNTS.filter(function (c) { return c.parent === a.id; }).forEach(function (c) {
+        var anc = anchorOf(c.id), sub = el('div', 'sub');
+        sub.appendChild(el('span', null, c.e + ' ' + c.l));
+        if (!anc) { sub.appendChild(el('span', 'q', 'solde inconnu')); }
+        else { var ec = balanceAt(c.id, today, false); sub.appendChild(el('span', 'amt', eur(ec))); total += ec; }
+        acc.appendChild(sub);
+      });
+      accEl.appendChild(acc);
     });
     var big = $('solde-big'); big.textContent = known ? eur(total) : '—';
     big.className = 'big num ' + (missing.length || !known ? 'idle' : (total < 0 ? 'bad' : 'good'));
@@ -791,25 +806,25 @@ details.det{font-size:13px} details.det summary{cursor:pointer;color:var(--accen
     var outs = monthMv.filter(function (m) { return m.sens === 'sortie' && (m.statut || 'encaisse') !== 'prevu' && !isInternal(m); });
     var any = ins.length || outs.length, dm = sumBy(ins) - sumBy(outs), dEl = $('solde-delta');
     dEl.className = 'delta ' + (any ? (dm >= 0 ? 'good' : 'bad') : 'idle'); dEl.textContent = (any ? signed(dm) : '—') + ' ' + (whenLabel || 'ce mois-ci');
-    $('solde-note').textContent = missing.length ? 'Il manque ' + (missing.length > 1 ? 'les soldes de ' : 'le solde de ') + missing.join(', ') + ' : le total est incomplet. Dis-le à ton Claude, par exemple « Revolut est à 312 € ce matin ».' : 'Somme de tes quatre poches, à partir du dernier solde donné pour chacune, plus les mouvements depuis. Un virement ou un retrait déplace l’argent d’une carte à l’autre sans changer le total.';
+    $('solde-note').textContent = missing.length ? 'Il manque ' + (missing.length > 1 ? 'les soldes de ' : 'le solde de ') + missing.join(', ') + ' : le total est incomplet. Dis-le à ton Claude, par exemple « Revolut est à 312 € ce matin ».' : 'Somme de tes quatre poches, Livret compris, à partir du dernier solde donné pour chacune, plus les mouvements depuis. Un virement, un retrait ou une mise de côté déplace l’argent d’une case à l’autre sans changer le total.';
   }
 
   // ---------- vue d’ensemble : graphique par période ----------
   var chartMode = 'mois', chartSel = null; // chartSel : liste d’ids de comptes affichés
   try { var pm = localStorage.getItem('sib-chart-mode'); if (pm === 'semaine' || pm === 'mois' || pm === 'annee') chartMode = pm; var ps = JSON.parse(localStorage.getItem('sib-chart-acc') || 'null'); if (Array.isArray(ps) && ps.length) chartSel = ps; } catch (e) {}
-  if (!chartSel) chartSel = ACCOUNTS.map(function (a) { return a.id; });
+  if (!chartSel) chartSel = TOP_ACCOUNTS.map(function (a) { return a.id; });
   function saveChartPrefs() { try { localStorage.setItem('sib-chart-mode', chartMode); localStorage.setItem('sib-chart-acc', JSON.stringify(chartSel)); } catch (e) {} }
   Array.prototype.forEach.call(document.querySelectorAll('#seg-per button'), function (btn) {
     btn.addEventListener('click', function () { chartMode = btn.dataset.v; saveChartPrefs(); if (state) renderChart(new Date()); });
   });
   (function buildChips() {
     var box = $('acc-chips'); box.innerHTML = '';
-    ACCOUNTS.forEach(function (a) {
+    TOP_ACCOUNTS.forEach(function (a) {
       var b = el('button'); b.type = 'button'; b.style.setProperty('--c', a.c); b.dataset.acc = a.id;
       b.appendChild(el('span', 'pi', a.e)); b.appendChild(el('span', null, a.l)); b.appendChild(el('small', null, ''));
       b.addEventListener('click', function () {
         var i = chartSel.indexOf(a.id);
-        if (i >= 0) { if (chartSel.length === 1) chartSel = ACCOUNTS.map(function (x) { return x.id; }); else chartSel.splice(i, 1); } else chartSel.push(a.id);
+        if (i >= 0) { if (chartSel.length === 1) chartSel = TOP_ACCOUNTS.map(function (x) { return x.id; }); else chartSel.splice(i, 1); } else chartSel.push(a.id);
         saveChartPrefs(); if (state) renderChart(new Date());
       });
       box.appendChild(b);
@@ -835,7 +850,7 @@ details.det{font-size:13px} details.det summary{cursor:pointer;color:var(--accen
       var on = chartSel.indexOf(b.dataset.acc) >= 0; b.setAttribute('aria-pressed', on);
       var an = anchorOf(b.dataset.acc); b.querySelector('small').textContent = an ? '' : '?';
     });
-    var sel = {}; chartSel.forEach(function (id) { sel[id] = true; });
+    var sel = {}; chartSel.forEach(function (id) { sel[id] = true; ACCOUNTS.forEach(function (a) { if (a.parent === id) sel[a.id] = true; }); });
     var periods = periodsFor(chartMode, today);
     var horizon = periods[periods.length - 1].end;
     // agrégation par période
@@ -892,10 +907,11 @@ details.det{font-size:13px} details.det summary{cursor:pointer;color:var(--accen
     svg.appendChild(svgEl('line', { x1: ml, y1: base, x2: W - mr, y2: base, class: 'grid' }));
     var box = $('bars-svg'); box.innerHTML = ''; box.appendChild(svg);
     // ---- ligne du solde global ----
-    var knownIds = chartSel.filter(function (id) { return !!anchorOf(id); });
-    var missing = chartSel.filter(function (id) { return !anchorOf(id); }).map(function (id) { return accOf(id).l; });
+    var selIds = Object.keys(sel);
+    var knownIds = selIds.filter(function (id) { return !!anchorOf(id); });
+    var missing = selIds.filter(function (id) { return !anchorOf(id) && !accOf(id).parent; }).map(function (id) { return accOf(id).l; });
     var lbox = $('line-svg'); lbox.innerHTML = '';
-    $('line-title').textContent = 'Solde global' + (knownIds.length ? ' · ' + knownIds.map(function (id) { return accOf(id).l; }).join(' + ') : '');
+    $('line-title').textContent = 'Solde global' + (knownIds.length ? ' · ' + knownIds.filter(function (id) { return !accOf(id).parent; }).map(function (id) { return accOf(id).l; }).join(' + ') + (knownIds.some(function (id) { return accOf(id).parent; }) ? ' (Livret compris)' : '') : '');
     if (!knownIds.length) { $('line-note').textContent = 'Aucun solde connu pour ' + (missing.join(', ') || 'ces comptes') + ' : la ligne s’affichera dès que ton Claude aura un solde.'; }
     else {
       var pts = periods.map(function (p) { var T = p.current ? today : p.end; var v = 0; knownIds.forEach(function (id) { v += balanceAt(id, T, !p.current && p.future ? true : true); }); return { x: 0, v: v, future: p.future, current: p.current }; });
@@ -928,11 +944,11 @@ details.det{font-size:13px} details.det summary{cursor:pointer;color:var(--accen
     }
     leg.appendChild(legCol('Rentré · les verts', CAT_IN, 'in')); leg.appendChild(legCol('Dépensé · toutes les autres couleurs', CAT_OUT, 'out'));
     var neutral = el('div', 'legneutral');
-    ['epargne', 'inc'].forEach(function (k) { var sp = el('span', 'legrow small' + (used[k] ? '' : ' dim')); sp.style.setProperty('--c', cvar(k)); sp.appendChild(el('span', 'pi', CATS[k].e)); sp.appendChild(el('span', null, CATS[k].l)); neutral.appendChild(sp); });
+    ['inc'].forEach(function (k) { var sp = el('span', 'legrow small' + (used[k] ? '' : ' dim')); sp.style.setProperty('--c', cvar(k)); sp.appendChild(el('span', 'pi', CATS[k].e)); sp.appendChild(el('span', null, CATS[k].l)); neutral.appendChild(sp); });
     var hs = el('span', 'legrow small hatch'); hs.appendChild(el('i', 'hatchsw')); hs.appendChild(el('span', null, 'hachuré = prévu, pas encore passé')); neutral.appendChild(hs);
     leg.appendChild(neutral);
     var futNoIn = periods.some(function (p) { return p.future && p.outT > 0; }) && !periods.some(function (p) { return p.future && p.inT > 0; });
-    $('chart-note').textContent = (chartSel.length === ACCOUNTS.length ? 'Les quatre poches ensemble. Les virements et retraits entre elles ne sont ni des rentrées ni des dépenses : ils déplacent l’argent d’une carte à l’autre, en haut.' : 'Vue partielle : seuls les mouvements des poches affichées sont comptés. Les virements et retraits entre tes quatre poches n’apparaissent jamais ici.') + (futNoIn ? ' Aucune rentrée à venir n’est enregistrée : les périodes futures ne montrent que ce qui va sortir. Dis à ton Claude ce qui est attendu (« France Travail vers le 5 octobre, environ 1 380 € », « cachet 250 € le 18, pas encore payé »).' : '');
+    $('chart-note').textContent = (chartSel.length === TOP_ACCOUNTS.length ? 'Les quatre poches ensemble. Les virements et retraits entre elles ne sont ni des rentrées ni des dépenses : ils déplacent l’argent d’une carte à l’autre, en haut.' : 'Vue partielle : seuls les mouvements des poches affichées sont comptés. Les virements et retraits entre tes quatre poches n’apparaissent jamais ici.') + (futNoIn ? ' Aucune rentrée à venir n’est enregistrée : les périodes futures ne montrent que ce qui va sortir. Dis à ton Claude ce qui est attendu (« France Travail vers le 5 octobre, environ 1 380 € », « cachet 250 € le 18, pas encore payé »).' : '');
   }
   // ---- dépenses fixes : par date ou par catégorie ----
   var fixSort = 'date', fixCollapsed = {}, fixCtx = null;
