@@ -650,13 +650,13 @@ details.moves summary{color:var(--muted)} details.moves .note{margin:4px 0 6px}
     }
 
     // ---- tuile 2 : mois ----
-    var revCert = 0, revPrev = 0, aide = 0, remb = 0, autreIn = 0;
+    var revCert = 0, revPrev = 0, aide = 0, remb = 0, autreIn = 0, cashIn = 0;
     monthMv.forEach(function (m) {
       if (m.sens !== 'entree') return;
       if (m.nature === 'revenu') { if (enc(m)) revCert += m._amt; else revPrev += m._amt; }
       else if (m.nature === 'aide') { if (enc(m)) aide += m._amt; }
       else if (m.nature === 'remboursement') { if (enc(m)) remb += m._amt; }
-      else if (enc(m)) autreIn += m._amt;
+      else if (enc(m)) { if (catOf(m) === 'liquide') cashIn += m._amt; else autreIn += m._amt; }
     });
     var chargesMonth = s.charges.filter(function (c) { return chargeInMonth(c, mo); });
     var fixTotal = 0, fixUnknown = 0;
@@ -697,6 +697,7 @@ details.moves summary{color:var(--muted)} details.moves .note{margin:4px 0 6px}
     var inNote = [];
     if (remb) inNote.push(eur(remb) + ' de remboursements : ce n’est pas du revenu, c’est le retour d’une avance.');
     if (aide) inNote.push(eur(aide) + ' d’aide, comptée à part.');
+    if (cashIn) inNote.push(eur(cashIn) + ' en liquide, comptés à part.');
     if (autreIn) inNote.push(eur(autreIn) + ' à classer, non comptés dans les revenus.');
     $('in-note').textContent = inNote.join(' ');
     lastLists = { 'in-rows': inMv, 'out-rows': outMv };
@@ -1263,7 +1264,7 @@ details.moves summary{color:var(--muted)} details.moves .note{margin:4px 0 6px}
     k.appendChild(el('span', 'd', fmtShort(m._d)));
     var nat = m.nature;
     if (opts.internal) { var from = accId(m.compte) || mainAcc(), to = accId(m.vers) || (m.nature === 'epargne' ? 'livret' : null); k.appendChild(el('span', 'tag', accLabel(from) + ' → ' + (to ? accLabel(to) : '?'))); }
-    if (nat === 'autre') k.appendChild(el('span', 'tag', 'c’est quoi ?'));
+    if (nat === 'autre' && catOf(m) !== 'liquide') k.appendChild(el('span', 'tag', 'c’est quoi ?'));
     if ((m.statut || '') === 'prevu') k.appendChild(el('span', 'tag ' + (opts.stale ? 'check' : 'acc'), opts.stale ? (isIn ? 'prévu, pas encore reçu' : 'prévu, paiement pas trouvé') : 'prévu'));
     if (isCashDate(m)) k.appendChild(el('span', 'tag', '💵 liquide, non déclaré'));
     if (m.verif) k.appendChild(el('span', 'tag check', 'à vérifier'));
