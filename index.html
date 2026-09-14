@@ -276,7 +276,15 @@ details.det{font-size:13px} details.det summary{cursor:pointer;color:var(--accen
 .rows.colored li.grp .k b{font-weight:700} .rows.colored li.grp .cnt{font-size:11.5px;color:rgba(255,255,255,.85);font-weight:500}
 .rows.colored li.grp .chev{margin-left:auto;margin-right:8px;opacity:.85;font-size:12px}
 .rows.colored li.item{margin-left:14px;background:color-mix(in srgb, var(--c) 78%, #fff)}
+.rows.colored li.done{background:color-mix(in srgb, var(--c) 22%, var(--surface-2));color:var(--faint)}
+.rows.colored li.done .k b{text-decoration:line-through;text-decoration-thickness:1px;font-weight:600}
+.rows.colored li.done .pi{opacity:.55} .rows.colored li.done .tag.ok{background:var(--good-bg);color:var(--good)} .rows.colored li.done .v{color:var(--faint)}
 .rows.colored li.item.hid{display:none}
+.stage{font-size:15px;font-weight:700;margin:6px 0 -6px;display:flex;align-items:center;gap:8px;color:var(--text)}
+details.moves{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:10px 16px}
+details.moves summary{color:var(--muted)} details.moves .note{margin:4px 0 6px}
+.strip.sum .item .val.good{color:var(--good)} .strip.sum .item .val.bad{color:var(--bad)}
+.rows.colored li.later{opacity:.85;outline:2px dashed rgba(255,255,255,.55);outline-offset:-2px}
 .foot{font-size:12px; color:var(--faint); line-height:1.5}
 @media (prefers-reduced-motion: reduce){ *{transition:none !important} }
 </style>
@@ -333,39 +341,54 @@ details.det{font-size:13px} details.det summary{cursor:pointer;color:var(--accen
   </div>
 
   <!-- VUE B : barres par catégorie -->
+  <!-- ÉTAGE 1 : ce qui s’est passé -->
+  <h2 class="stage" id="stage-done">✅ Ce qui s’est passé</h2>
   <div class="cols">
     <div class="card">
-      <h2 id="in-title">💰 Rentré, par catégorie</h2>
+      <div class="chart-head"><h2 id="in-title">💰 Rentré</h2>
+        <div class="seg" id="seg-in" role="group" aria-label="Tri"><button type="button" data-v="date">Par date</button><button type="button" data-v="cat">Par catégorie</button></div></div>
       <div class="bars" id="b-in"></div>
       <div class="total"><span>Revenus certains</span><span class="v" id="in-total">—</span></div>
       <p class="note" id="in-note"></p>
-      <details class="det"><summary>Voir chaque ligne</summary><ul class="rows colored" id="in-rows"></ul></details>
+      <ul class="rows colored" id="in-rows"></ul>
     </div>
     <div class="card">
-      <h2 id="out-title">💸 Dépensé, par catégorie</h2>
+      <div class="chart-head"><h2 id="out-title">💸 Dépensé</h2>
+        <div class="seg" id="seg-out" role="group" aria-label="Tri"><button type="button" data-v="date">Par date</button><button type="button" data-v="cat">Par catégorie</button></div></div>
       <div class="bars" id="b-out"></div>
       <div class="total"><span>Total dépensé</span><span class="v" id="out-total">—</span></div>
-      <details class="det"><summary>Voir chaque ligne</summary><ul class="rows colored" id="out-rows"></ul></details>
+      <ul class="rows colored" id="out-rows"></ul>
     </div>
   </div>
+  <details class="det moves" id="moves"><summary id="moves-sum">🔀 Déplacements entre tes poches</summary>
+    <p class="note">Virements, retraits et mises de côté : l’argent change de poche, le total ne bouge pas. Ni rentrée ni dépense.</p>
+    <ul class="rows colored" id="int-rows"></ul>
+    <p class="note" id="log-note"></p>
+  </details>
 
+  <!-- ÉTAGE 2 : ce qui est attendu -->
+  <h2 class="stage" id="stage-next">⏳ Ce qui est attendu</h2>
   <div class="cols">
     <div class="card">
-      <div class="chart-head"><h2 id="mv-title">🗓️ Mouvements du mois</h2>
-        <div class="segs">
-          <div class="seg" id="seg-mv-side" role="group" aria-label="Sens"><button type="button" data-v="all">Tout</button><button type="button" data-v="in">Rentré</button><button type="button" data-v="out">Dépensé</button></div>
-          <div class="seg" id="seg-mv" role="group" aria-label="Tri"><button type="button" data-v="date">Par date</button><button type="button" data-v="cat">Par catégorie</button></div>
-        </div></div>
-      <ul class="rows colored" id="mv-rows"></ul>
-      <p class="note" id="log-note"></p>
+      <h2>📥 Ce qui doit rentrer</h2>
+      <ul class="rows colored" id="exp-rows"></ul>
+      <div class="total"><span id="exp-total-lab">Attendu ce mois</span><span class="v" id="exp-total">—</span></div>
+      <p class="note" id="exp-note"></p>
     </div>
     <div class="card">
-      <div class="chart-head"><h2>🏠 Dépenses fixes du mois</h2>
+      <div class="chart-head"><h2>📤 Ce qui doit sortir</h2>
         <div class="seg" id="seg-fix" role="group" aria-label="Tri"><button type="button" data-v="date">Par date</button><button type="button" data-v="cat">Par catégorie</button></div></div>
       <ul class="rows colored" id="fix-rows"></ul>
-      <div class="total"><span>Total du mois</span><span class="v" id="fix-total">—</span></div>
+      <div class="total"><span id="fix-total-lab">Reste à sortir</span><span class="v" id="fix-total">—</span></div>
       <p class="note" id="fix-note"></p>
     </div>
+  </div>
+  <div class="strip sum" id="sum">
+    <div class="item"><span class="eyebrow">Tes 4 poches aujourd’hui</span><span class="val num" id="sum-now">—</span></div>
+    <div class="item"><span class="eyebrow" id="sum-in-lab">Doit rentrer</span><span class="val num good" id="sum-in">—</span></div>
+    <div class="item"><span class="eyebrow" id="sum-out-lab">Doit sortir</span><span class="val num bad" id="sum-out">—</span></div>
+    <div class="item"><span class="eyebrow" id="sum-end-lab">Solde estimé fin de mois</span><span class="val num" id="sum-end">—</span></div>
+    <p class="note" id="sum-note" style="flex-basis:100%"></p>
   </div>
 
   <!-- QUESTIONS -->
@@ -379,14 +402,11 @@ details.det{font-size:13px} details.det summary{cursor:pointer;color:var(--accen
   <div class="strip" id="rights">
     <div class="item"><span class="eyebrow">Allocation / jour</span><span class="val num" id="r-aj">—</span></div>
     <div class="item"><span class="eyebrow">Un cachet coûte</span><span class="val num" id="r-cost">—</span></div>
-    <div class="item"><span class="eyebrow">Cachets encaissés ce mois</span><span class="val num" id="r-cachets">—</span></div>
-    <div class="item"><span class="eyebrow" id="r-ft-lab">France Travail attendu</span><span class="val num" id="r-ft">—</span></div>
     <div class="grow">
       <div class="barlab"><span class="eyebrow">Heures pour renouveler les droits</span><span id="r-hours-lab">—</span></div>
       <div class="bar" style="color:var(--accent)"><span id="r-hours-bar" style="width:0%"></span></div>
       <span class="note" id="r-note"></span>
     </div>
-    <p class="note" id="r-ft-note" style="flex-basis:100%"></p>
   </div>
 
   <p class="foot" id="foot">Tout ce qui est chiffré ici vient du coffre, rempli par ton Claude au fil de ce que tu lui dis. Les cases marquées <span class="tag check">à vérifier</span> sont des montants réels dont la nature ou l'exactitude n'est pas confirmée. Aucun montant n'est inventé : une case vide veut dire « je ne l'ai pas ».</p>
@@ -544,7 +564,8 @@ details.det{font-size:13px} details.det summary{cursor:pointer;color:var(--accen
         render();
         return true;
       })
-      .catch(function () {
+      .catch(function (e) {
+        if (window.console) console.error('comptes-sibylle', e);
         $('when').textContent = '⚠️ coffre injoignable — affichage de la dernière version'; $('when').className = 'when err';
         return state ? true : false;
       });
@@ -569,6 +590,16 @@ details.det{font-size:13px} details.det summary{cursor:pointer;color:var(--accen
     return c.jour || null; // mensuelle ; jour inconnu → null (mais due)
   }
   function chargeIsMonthly(c) { return c.periodicite !== 'an'; }
+  // Paiements d’une charge dans le mois (y, mo) : le mouvement lié par charge_id, sinon un mouvement « charge » de même catégorie
+  // et de même montant (à 3 % près) sans charge_id : la charge est alors rapprochée toute seule.
+  function paymentsFor(c, mv, y, mo) {
+    var key = catOf({ categorie: c.categorie, nature: 'charge' }), amt = num(c.montant);
+    return mv.filter(function (m) {
+      if (m.sens !== 'sortie' || (m.statut || 'encaisse') === 'prevu' || !m._d || m._d.getFullYear() !== y || m._d.getMonth() !== mo) return false;
+      if (m.charge_id) return m.charge_id === c.id;
+      return amt != null && m.nature === 'charge' && catOf(m) === key && Math.abs(m._amt - amt) <= Math.max(2, amt * 0.03);
+    });
+  }
   function chargeInMonth(c, month) { return chargeIsMonthly(c) || (c.mois != null && +c.mois === month + 1); }
 
   function render() {
@@ -652,44 +683,101 @@ details.det{font-size:13px} details.det summary{cursor:pointer;color:var(--accen
     renderSolde(today, monthMv, monthOffset === 0 ? 'ce mois-ci' : 'en ' + MONTHS[mo]);
     renderChart(today);
 
-    // ---- vue B : par catégorie (virements et épargne à part) ----
+    // ---- étage 1 : ce qui s’est effectivement passé (encaissé, hors déplacements entre poches) ----
+    var deM = (/^[aeiouy]/.test(MONTHS[mo]) ? 'd’' : 'de ') + MONTHS[mo];
+    $('stage-done').textContent = '✅ Ce qui s’est passé en ' + MONTHS[mo] + (monthCmp === 0 ? ' (jusqu’à aujourd’hui)' : '');
+    $('stage-next').textContent = monthCmp < 0 ? '⏳ Ce qui était attendu en ' + MONTHS[mo] : '⏳ Ce qui est attendu' + (monthCmp === 0 ? ' d’ici la fin ' + deM : ' en ' + MONTHS[mo]);
     var inMv = monthMv.filter(function (m) { return m.sens === 'entree' && enc(m) && !isInternal(m); });
     var outMv = monthMv.filter(function (m) { return m.sens === 'sortie' && enc(m) && !isInternal(m); });
     var inTot = sumBy(inMv), outTot = sumBy(outMv), inCats = groupCats(inMv), outCats = groupCats(outMv);
     fillBars($('b-out'), outCats, outTot); fillBars($('b-in'), inCats, inTot);
-    $('out-title').textContent = '💸 Dépensé en ' + MONTHS[mo] + ', par catégorie';
-    $('in-title').textContent = '💰 Rentré en ' + MONTHS[mo] + ', par catégorie';
+    $('out-title').textContent = '💸 Dépensé en ' + MONTHS[mo];
+    $('in-title').textContent = '💰 Rentré en ' + MONTHS[mo];
     $('out-total').textContent = eur(outTot); $('in-total').textContent = eur(revCert);
     var inNote = [];
     if (remb) inNote.push(eur(remb) + ' de remboursements : ce n’est pas du revenu, c’est le retour d’une avance.');
     if (aide) inNote.push(eur(aide) + ' d’aide, comptée à part.');
     if (autreIn) inNote.push(eur(autreIn) + ' à classer, non comptés dans les revenus.');
-    if (revPrev) inNote.push(eur(revPrev) + ' prévus mais pas encore payés : bonus potentiel, jamais dans le dépensable.');
     $('in-note').textContent = inNote.join(' ');
-    var inRows = $('in-rows'); inRows.innerHTML = '';
-    monthMv.filter(function (m) { return m.sens === 'entree'; }).sort(function (a, b) { return a._d - b._d; }).forEach(function (m) { inRows.appendChild(rowFor(m, true)); });
-    if (!inRows.children.length) inRows.appendChild(el('li', 'empty', 'Rien d’encaissé ce mois-ci pour l’instant.'));
-    var outRows = $('out-rows'); outRows.innerHTML = '';
-    monthMv.filter(function (m) { return m.sens === 'sortie' && enc(m); }).sort(function (a, b) { return a._d - b._d; }).forEach(function (m) { outRows.appendChild(rowFor(m, false)); });
-    if (!outRows.children.length) outRows.appendChild(el('li', 'empty', 'Rien de sorti ce mois-ci pour l’instant.'));
+    lastLists = { 'in-rows': inMv, 'out-rows': outMv };
+    renderMvList('in-rows', inMv, 'Rien de rentré en ' + MONTHS[mo] + ' pour l’instant.');
+    renderMvList('out-rows', outMv, 'Rien de dépensé en ' + MONTHS[mo] + ' pour l’instant.');
 
-    // ---- charges fixes ----
-    var paidTotal = 0;
-    chargesMonth.forEach(function (c) { var paid = monthMv.filter(function (m) { return m.sens === 'sortie' && enc(m) && m.charge_id === c.id; }); paidTotal += paid.reduce(function (n, m) { return n + m._amt; }, 0); });
-    fixCtx = { chargesMonth: chargesMonth, monthMv: monthMv, y: y, mo: mo, monthCmp: monthCmp, today: today };
+    // ---- déplacements entre poches ----
+    var intMv = monthMv.filter(function (m) { return isInternal(m); }).sort(function (a, b) { return b._d - a._d; });
+    var intRows = $('int-rows'); intRows.innerHTML = '';
+    intMv.forEach(function (m) { intRows.appendChild(rowFor(m, false, { internal: true })); });
+    if (!intMv.length) intRows.appendChild(el('li', 'empty', 'Aucun déplacement en ' + MONTHS[mo] + '.'));
+    $('moves-sum').textContent = '🔀 ' + (intMv.length ? intMv.length + ' déplacement' + (intMv.length > 1 ? 's' : '') + ' entre tes poches en ' + MONTHS[mo] + ' · ' + eur(sumBy(intMv)) : 'Aucun déplacement entre tes poches en ' + MONTHS[mo]);
+    var lastLog = s.log.length ? s.log[s.log.length - 1] : null;
+    $('log-note').textContent = lastLog ? 'Dernier ajout de ton Claude : ' + (lastLog.msg || '') : '';
+
+    // ---- étage 2, gauche : ce qui doit rentrer ----
+    var expRows = $('exp-rows'); expRows.innerHTML = '';
+    var expTot = 0, expNotes = [];
+    var ftLine = function (label, when, amount, opts) { // ligne France Travail (estimée ou enregistrée)
+      var li = el('li', opts.cls || null); li.style.setProperty('--c', cvar('ft'));
+      var k = el('span', 'k'); k.appendChild(pi('ft')); k.appendChild(el('b', null, label)); k.appendChild(el('span', 'd', when));
+      (opts.tags || []).forEach(function (t) { k.appendChild(el('span', 'tag ' + (t[1] || ''), t[0])); });
+      li.appendChild(k); li.appendChild(el('span', 'v', '+ ' + eur(amount)));
+      return li;
+    };
+    // a) le versement attendu CE mois (au titre du mois précédent), estimé par la page
+    FLOWS.filter(function (f) { return f.est && inRange(f.d, mStart, mEnd); }).forEach(function (f) {
+      var pm = (mo + 11) % 12;
+      expRows.appendChild(ftLine('France Travail pour ' + MONTHS[pm], 'début ' + MONTHS[mo], f.v, { tags: [['estimé par la page', 'acc']] }));
+      expTot += f.v;
+    });
+    // b) le France Travail AU TITRE de ce mois, versé le mois suivant : c’est lui que tes dates font bouger
+    var ft = ftFor(y, mo, mv), nextM = MONTHS[(mo + 1) % 12], hStd = P('heures_cachet') || 12;
+    if (!ft) expNotes.push('Allocation journalière inconnue : dis à ton Claude le montant net par jour indiqué par France Travail, et le France Travail attendu se calculera tout seul.');
+    else {
+      var nC = ft.cachets.length, nPrev = ft.cachets.filter(function (m) { return !enc(m); }).length;
+      var detail = ft.dim + ' j × ' + eur(ft.aj) + ' = ' + eur0(ft.full) + (nC ? ' − ' + nC + (nC > 1 ? ' cachets déclarés' : ' cachet déclaré') + (nPrev ? ' (dont ' + nPrev + ' prévu' + (nPrev > 1 ? 's' : '') + ')' : '') + ' (' + (ft.hours === nC * hStd ? '' : ft.hours + ' h, ') + ft.jNon.toFixed(2).replace('.', ',') + ' j, ' + eur0(ft.cut) + ')' : ', aucun cachet déclaré daté') + ' = ' + eur(ft.amt) + (ft.cash.length ? '. ' + ft.cash.length + (ft.cash.length > 1 ? ' dates en liquide (' : ' date en liquide (') + eur(sumBy(ft.cash)) + ') non déclarée' + (ft.cash.length > 1 ? 's' : '') + ' : sans effet sur France Travail' : '');
+      if (ft.real.length) {
+        expRows.appendChild(ftLine('France Travail pour ' + MONTHS[mo], (ft.realPrevu ? 'annoncé ' : 'reçu le ') + fmtShort(ft.real[0]._d), ft.realAmt, { cls: 'done', tags: [[ft.realPrevu ? 'annoncé' : '✓ reçu', 'ok']] }));
+        expNotes.push('France Travail pour ' + MONTHS[mo] + ' : ' + (ft.realPrevu ? 'versement annoncé' : 'versement reçu') + ' début ' + nextM + ', ' + eur(ft.realAmt) + '. Calcul de la page pour comparaison : ' + detail + '.' + (Math.abs(ft.realAmt - ft.amt) >= 1 ? ' Écart de ' + eur(Math.abs(ft.realAmt - ft.amt)) + ' : un cachet payé ce mois-là mais joué un autre mois, une déclaration en heures plutôt qu’en cachet, ou une allocation différente ? Dis-le à ton Claude pour qu’il précise la date de prestation.' : ''));
+      } else if (ft.payDate <= today) {
+        expNotes.push('Aucun versement France Travail enregistré début ' + nextM + ' pour ' + MONTHS[mo] + '. Attendu d’après tes cachets : ' + detail + '. Dis à ton Claude le montant reçu.');
+      } else {
+        expRows.appendChild(ftLine('France Travail pour ' + MONTHS[mo], '→ début ' + nextM, ft.amt, { cls: 'later', tags: [['estimé, versé le mois prochain', 'acc']] }));
+        expNotes.push('France Travail pour ' + MONTHS[mo] + ', versé début ' + nextM + ' (la date exacte varie), donc hors du total de ce mois : ' + detail + '. Chaque cachet déclaré joué en ' + MONTHS[mo] + ' retire ' + (hStd * ftCoef()).toFixed(2).replace('.', ',') + ' jour, soit ' + eur(hStd * ftCoef() * ft.aj) + ' ; une date payée en liquide ne retire rien. La date qui compte est celle de la prestation, pas celle du paiement.');
+      }
+    }
+    // c) les rentrées prévues datées dans le mois (dates signées, remboursements ou aides annoncés)
+    var prevIn = monthMv.filter(function (m) { return m.sens === 'entree' && !enc(m) && !isInternal(m); }).sort(function (a, b) { return a._d - b._d; });
+    prevIn.forEach(function (m) { expRows.appendChild(rowFor(m, true, { stale: monthCmp < 0 || m._d < today })); expTot += m._amt; });
+    if (!expRows.children.length) expRows.appendChild(el('li', 'empty', monthCmp < 0 ? 'Rien n’était enregistré comme attendu.' : 'Rien d’attendu enregistré. Dis à ton Claude tes dates (« date le 18, 250 € », « 150 € en liquide le 25 ») : elles apparaîtront ici, puis monteront dans « Rentré » une fois payées.'));
+    $('exp-total-lab').textContent = monthCmp < 0 ? 'Était attendu en ' + MONTHS[mo] : 'Attendu ' + (monthCmp === 0 ? 'd’ici la fin ' + deM : 'en ' + MONTHS[mo]);
+    $('exp-total').textContent = eur(expTot);
+    $('exp-note').textContent = expNotes.join(' ');
+
+    // ---- étage 2, droite : ce qui doit sortir (charges fixes non passées en tête, passées en grisé) ----
+    var paidTotal = 0, leftTotal = 0, lateTotal = 0, lateN = 0;
+    chargesMonth.forEach(function (c) {
+      var paid = paymentsFor(c, monthMv, y, mo), amt = num(c.montant); paidTotal += sumBy(paid);
+      if (paid.length || amt == null) return;
+      var day = chargeDue(c, y, mo) || daysInMonth, d = new Date(y, mo, Math.min(day, daysInMonth));
+      if (d <= today) { lateTotal += amt; lateN++; } else leftTotal += amt;
+    });
+    var prevOut = monthMv.filter(function (m) { return m.sens === 'sortie' && !enc(m) && !isInternal(m); });
+    leftTotal += sumBy(prevOut);
+    fixCtx = { chargesMonth: chargesMonth, prevOut: prevOut, monthMv: monthMv, y: y, mo: mo, monthCmp: monthCmp, today: today };
     renderFixList();
-    var fixRows = $('fix-rows');
-    if (!chargesMonth.length) fixRows.appendChild(el('li', 'empty', 'Aucune charge fixe enregistrée.'));
-    $('fix-total').textContent = eur(fixTotal);
+    $('fix-total-lab').textContent = monthCmp < 0 ? 'Pas vu passer en ' + MONTHS[mo] : 'Reste à sortir ' + (monthCmp === 0 ? 'd’ici la fin ' + deM : 'en ' + MONTHS[mo]);
+    $('fix-total').textContent = eur(leftTotal);
     var yearly = s.charges.filter(function (c) { return c.periodicite === 'an' && num(c.montant) != null; }).reduce(function (n, c) { return n + num(c.montant); }, 0);
     var monthlyEq = s.charges.filter(function (c) { return chargeIsMonthly(c) && num(c.montant) != null; }).reduce(function (n, c) { return n + num(c.montant); }, 0) + yearly / 12;
-    $('fix-note').textContent = 'Payé à ce jour : ' + eur(paidTotal) + '. Équivalent mensuel de toutes les charges, provisions annuelles comprises (÷ 12) : ' + eur(monthlyEq) + '.' + (fixUnknown ? ' ' + fixUnknown + ' montant' + (fixUnknown > 1 ? 's' : '') + ' inconnu' + (fixUnknown > 1 ? 's' : '') + '.' : '');
+    $('fix-note').textContent = 'Déjà passé : ' + eur(paidTotal) + ' (en grisé, déjà compté dans « Dépensé »).' + (lateN ? ' ' + lateN + ' charge' + (lateN > 1 ? 's' : '') + ' à date dépassée pas vue' + (lateN > 1 ? 's' : '') + ' passer (' + eur(lateTotal) + ') : payée' + (lateN > 1 ? 's' : '') + ' depuis une autre poche, décalée' + (lateN > 1 ? 's' : '') + ', ou manquante' + (lateN > 1 ? 's' : '') + ' dans le coffre ? Non comptée' + (lateN > 1 ? 's' : '') + ' dans le reste à sortir, à vérifier avec ton Claude.' : '') + ' Toutes les charges fixes du mois : ' + eur(fixTotal) + '. Équivalent mensuel, provisions annuelles comprises (÷ 12) : ' + eur(monthlyEq) + '.' + (fixUnknown ? ' ' + fixUnknown + ' montant' + (fixUnknown > 1 ? 's' : '') + ' inconnu' + (fixUnknown > 1 ? 's' : '') + ', non compté' + (fixUnknown > 1 ? 's' : '') + '.' : '');
 
-    // ---- mouvements du mois : par date ou par catégorie ----
-    $('mv-title').textContent = '🗓️ Mouvements ' + (/^[aeiouy]/.test(MONTHS[mo]) ? 'd’' : 'de ') + MONTHS[mo];
-    renderMonthList(monthMv);
-    var lastLog = s.log.length ? s.log[s.log.length - 1] : null;
-    $('log-note').textContent = lastLog ? (lastLog.msg || '') : '';
+    // ---- résumé : aujourd’hui, attendu, à sortir, fin de mois ----
+    var gNow = globalBalance(today, false), gEnd = globalBalance(monthCmp < 0 ? mEnd : mEnd, monthCmp >= 0);
+    $('sum-now').textContent = gNow.known ? eur(gNow.v) : '—';
+    $('sum-in').textContent = '+ ' + eur(expTot); $('sum-out').textContent = '− ' + eur(leftTotal);
+    $('sum-in-lab').textContent = monthCmp < 0 ? 'Était attendu' : 'Doit rentrer'; $('sum-out-lab').textContent = monthCmp < 0 ? 'Pas vu passer' : 'Doit sortir';
+    $('sum-end-lab').textContent = (monthCmp < 0 ? 'Solde fin ' : 'Solde estimé fin ') + MONTHS[mo];
+    var endEl = $('sum-end'); endEl.textContent = gEnd.known ? eur(gEnd.v) : '—'; endEl.className = 'val num ' + (gEnd.known ? (gEnd.v < 0 ? 'bad' : 'good') : '');
+    $('sum-note').textContent = monthCmp < 0 ? 'Pour un mois passé : solde reconstitué à la fin du mois d’après les soldes donnés et les mouvements.' : ('Solde estimé = tes poches aujourd’hui + ce qui doit rentrer − ce qui doit sortir, jour par jour jusqu’au ' + mEnd.getDate() + ' ' + MONTHS[mo] + '. C’est la ligne du graphique « Vue d’ensemble ».' + (gNow.missing.length ? ' Poches sans solde connu, non comptées : ' + gNow.missing.join(', ') + '.' : ''));
 
     // ---- questions ----
     var askEl = $('ask'), askList = $('ask-list'); askList.innerHTML = '';
@@ -704,29 +792,6 @@ details.det{font-size:13px} details.det summary{cursor:pointer;color:var(--accen
     var coef = annexe === 'VIII' ? 1.4 / 8 : 1.3 / 10;
     $('r-aj').textContent = aj != null ? ((s.params.aj && s.params.aj.verif) ? '≈ ' : '') + eur(aj) : '—';
     $('r-cost').textContent = aj != null ? (hc * coef).toFixed(2).replace('.', ',') + ' j = ' + eur0(hc * coef * aj) : (hc * coef).toFixed(2).replace('.', ',') + ' jour d’allocation';
-    var cachets = monthMv.filter(function (m) { return isCachet(m) && isDeclared(m) && enc(m); });
-    var cashEnc = monthMv.filter(function (m) { return isCashDate(m) && enc(m); });
-    var datesPrev = monthMv.filter(function (m) { return isCachet(m) && !enc(m); });
-    var part = function (arr, one, many) { return arr.length + ' ' + (arr.length > 1 ? many : one) + (arr.length ? ' · ' + eur(sumBy(arr)) : ''); };
-    $('r-cachets').textContent = part(cachets, 'cachet', 'cachets') + (cashEnc.length ? ' + ' + part(cashEnc, 'date en liquide', 'dates en liquide') : '') + (datesPrev.length ? ' · ' + datesPrev.length + ' prévu' + (datesPrev.length > 1 ? 'es' : 'e') : '');
-    var ft = ftFor(y, mo, mv), nextM = MONTHS[(mo + 1) % 12];
-    $('r-ft-lab').textContent = 'France Travail pour ' + MONTHS[mo];
-    if (!ft) { $('r-ft').textContent = '—'; $('r-ft-note').textContent = 'Allocation journalière inconnue : dis à ton Claude le montant net par jour indiqué par France Travail, et le France Travail attendu se calculera tout seul.'; }
-    else {
-      var nC = ft.cachets.length, hStd = P('heures_cachet') || 12;
-      var nPrev = ft.cachets.filter(function (m) { return !enc(m); }).length;
-      var detail = ft.dim + ' j × ' + eur(ft.aj) + ' = ' + eur0(ft.full) + (nC ? ' − ' + nC + (nC > 1 ? ' cachets déclarés' : ' cachet déclaré') + (nPrev ? ' (dont ' + nPrev + ' prévu' + (nPrev > 1 ? 's' : '') + ')' : '') + ' (' + (ft.hours === nC * hStd ? '' : ft.hours + ' h, ') + ft.jNon.toFixed(2).replace('.', ',') + ' j, ' + eur0(ft.cut) + ')' : ', aucun cachet déclaré daté') + ' = ' + eur(ft.amt) + (ft.cash.length ? '. ' + ft.cash.length + (ft.cash.length > 1 ? ' dates en liquide (' : ' date en liquide (') + eur(sumBy(ft.cash)) + ') non déclarée' + (ft.cash.length > 1 ? 's' : '') + ' : sans effet sur France Travail' : '');
-      if (ft.real.length) {
-        $('r-ft').textContent = eur(ft.realAmt);
-        $('r-ft-note').textContent = (ft.realPrevu ? 'Versement prévu enregistré par ton Claude' : 'Versement reçu') + ' début ' + nextM + ' : ' + eur(ft.realAmt) + '. Calcul de la page pour comparaison : ' + detail + '.' + (Math.abs(ft.realAmt - ft.amt) >= 1 ? ' Écart de ' + eur(Math.abs(ft.realAmt - ft.amt)) + ' : un cachet payé ce mois-là mais joué un autre mois, une déclaration en heures plutôt qu’en cachet, ou une allocation différente ? Dis-le à ton Claude pour qu’il précise la date de prestation.' : '');
-      } else if (ft.payDate <= today) {
-        $('r-ft').textContent = '—';
-        $('r-ft-note').textContent = 'Aucun versement France Travail enregistré début ' + nextM + '. Attendu d’après tes cachets : ' + detail + '. Dis à ton Claude le montant reçu.';
-      } else {
-        $('r-ft').textContent = '≈ ' + eur(ft.amt);
-        $('r-ft-note').textContent = 'Attendu début ' + nextM + ' (la date exacte varie) : ' + detail + '. Chaque cachet déclaré en ' + MONTHS[mo] + ' retire ' + (hStd * ftCoef()).toFixed(2).replace('.', ',') + ' jour, soit ' + eur(hStd * ftCoef() * ft.aj) + ' ; une date payée en liquide ne retire rien. La date qui compte est celle de la prestation, pas celle du paiement (« cachet 245 € reçu le 5, prestation du 18 août »), et si quelqu’un a déclaré des heures plutôt qu’un cachet, dis-le aussi (« déclaré 8 h ») : le calcul suit. Ce montant est déjà compté, en hachuré, dans le graphique et la ligne du solde.';
-      }
-    }
     var hours = P('heures_compteur');
     var hp = s.params.heures_compteur;
     if (hours != null) {
@@ -834,16 +899,20 @@ details.det{font-size:13px} details.det summary{cursor:pointer;color:var(--accen
       var d0 = new Date(y0, m0 + k, 1), y = d0.getFullYear(), mo = d0.getMonth(), dim = new Date(y, mo + 1, 0).getDate();
       charges.forEach(function (c) {
         if (!chargeInMonth(c, mo)) return;
-        var day = chargeDue(c, y, mo), amt = num(c.montant); if (!day || amt == null) return;
+        var day = chargeDue(c, y, mo) || dim, amt = num(c.montant); if (amt == null) return;
         var d = new Date(y, mo, Math.min(day, dim)); if (d <= today) return;
-        var paid = mv.some(function (m) { return m.charge_id === c.id && m.sens === 'sortie' && m._d.getMonth() === mo && m._d.getFullYear() === y; });
-        if (paid) return;
+        if (paymentsFor(c, mv, y, mo).length) return;
         FLOWS.push({ d: d, v: amt, sens: 'sortie', cat: catOf({ categorie: c.categorie, nature: 'charge' }), acc: main, hatch: true, proj: true, internal: false });
       });
       // France Travail attendu pour ce mois, versé début du mois suivant, sauf si un versement est déjà enregistré (encaissé ou prévu)
       var ft = ftFor(y, mo, mv);
       if (ft && ft.amt > 0 && ft.payDate > today && !ft.real.length) FLOWS.push({ d: ft.payDate, v: ft.amt, sens: 'entree', cat: 'ft', acc: main, hatch: true, proj: true, est: true, internal: false });
     }
+  }
+  function globalBalance(T, withFuture) { // somme des poches dont le solde est connu
+    var v = 0, known = 0, missing = [];
+    ACCOUNTS.forEach(function (a) { var b = balanceAt(a.id, T, withFuture); if (b == null) { if (!a.parent) missing.push(a.l); return; } v += b; known++; });
+    return { v: v, known: known, missing: missing };
   }
   function balanceAt(id, T, withFuture) { // solde estimé d’un compte à la fin du jour T
     var an = anchorOf(id); if (!an) return null;
@@ -1047,15 +1116,15 @@ details.det{font-size:13px} details.det summary{cursor:pointer;color:var(--accen
   });
   function fixRow(c, ctx) {
     var day = chargeDue(c, ctx.y, ctx.mo);
-    var paid = ctx.monthMv.filter(function (m) { return m.sens === 'sortie' && (m.statut || 'encaisse') !== 'prevu' && m.charge_id === c.id; });
-    var paidAmt = paid.reduce(function (n, m) { return n + m._amt; }, 0);
+    var paid = paymentsFor(c, ctx.monthMv, ctx.y, ctx.mo);
+    var paidAmt = sumBy(paid);
     var amt = num(c.montant), key = catOf({ categorie: c.categorie, nature: 'charge' });
-    var li = el('li'); li.style.setProperty('--c', cvar(key));
+    var li = el('li', paid.length ? 'done' : null); li.style.setProperty('--c', cvar(key));
     var k = el('span', 'k'); k.appendChild(pi(key)); k.appendChild(el('b', null, c.libelle || c.id));
     if (day) k.appendChild(el('span', 'd', 'le ' + day)); else k.appendChild(el('span', 'tag check', 'jour ?'));
     if (c.periodicite === 'an') k.appendChild(el('span', 'tag', 'annuel'));
-    if (paid.length) k.appendChild(el('span', 'tag ok', 'payée'));
-    else if (ctx.monthCmp < 0 || (ctx.monthCmp === 0 && day && day < ctx.today.getDate())) k.appendChild(el('span', 'tag', 'pas vue passer'));
+    if (paid.length) k.appendChild(el('span', 'tag ok', '✓ payée le ' + paid[0]._d.getDate() + (paid.some(function (m) { return !m.charge_id; }) ? ' · rapprochée' : '')));
+    else if (ctx.monthCmp < 0 || (ctx.monthCmp === 0 && day && day < ctx.today.getDate())) k.appendChild(el('span', 'tag check', 'pas vue passer'));
     else k.appendChild(el('span', 'tag acc', 'à venir'));
     if (c.verif && !paid.length) k.appendChild(el('span', 'tag check', 'à vérifier'));
     li.appendChild(k);
@@ -1066,64 +1135,73 @@ details.det{font-size:13px} details.det summary{cursor:pointer;color:var(--accen
     if (!fixCtx) return;
     var ctx = fixCtx, box = $('fix-rows'); box.innerHTML = '';
     Array.prototype.forEach.call(document.querySelectorAll('#seg-fix button'), function (b) { b.setAttribute('aria-pressed', b.dataset.v === fixSort); });
-    var list = ctx.chargesMonth.slice();
-    if (!list.length) { box.appendChild(el('li', 'empty', 'Aucune charge fixe enregistrée.')); return; }
-    var byDay = function (a, b) { return (chargeDue(a, ctx.y, ctx.mo) || 99) - (chargeDue(b, ctx.y, ctx.mo) || 99); };
-    if (fixSort === 'date') { list.sort(byDay).forEach(function (c) { box.appendChild(fixRow(c, ctx)); }); return; }
+    var charges = ctx.chargesMonth.slice(), prevOut = (ctx.prevOut || []).slice();
+    if (!charges.length && !prevOut.length) { box.appendChild(el('li', 'empty', 'Aucune charge fixe enregistrée. Dis à ton Claude tes prélèvements fixes (loyer, électricité, abonnements…).')); return; }
+    var dayOf = function (c) { return chargeDue(c, ctx.y, ctx.mo) || 99; };
+    var isPaid = function (c) { return paymentsFor(c, ctx.monthMv, ctx.y, ctx.mo).length > 0; };
+    var prevRow = function (m) { return rowFor(m, false, { stale: ctx.monthCmp < 0 || m._d < ctx.today }); };
+    if (fixSort === 'date') {
+      // à venir : charges non passées et sorties prévues, par jour ; puis les charges déjà passées, en grisé
+      var todo = charges.filter(function (c) { return !isPaid(c); }).map(function (c) { return { day: dayOf(c), c: c }; })
+        .concat(prevOut.map(function (m) { return { day: m._d.getDate(), m: m }; }))
+        .sort(function (a, b) { return a.day - b.day; });
+      todo.forEach(function (x) { box.appendChild(x.c ? fixRow(x.c, ctx) : prevRow(x.m)); });
+      var done = charges.filter(isPaid).sort(function (a, b) { return dayOf(a) - dayOf(b); });
+      if (todo.length && done.length) box.appendChild(el('li', 'empty', '— déjà passé —'));
+      done.forEach(function (c) { box.appendChild(fixRow(c, ctx)); });
+      return;
+    }
     var groups = {};
-    list.forEach(function (c) { var k = catOf({ categorie: c.categorie, nature: 'charge' }); (groups[k] = groups[k] || []).push(c); });
+    charges.forEach(function (c) { var k = catOf({ categorie: c.categorie, nature: 'charge' }); (groups[k] = groups[k] || []).push({ c: c }); });
+    prevOut.forEach(function (m) { var k = catOf(m); (groups[k] = groups[k] || []).push({ m: m }); });
     CAT_ORDER.forEach(function (k) {
       var items = groups[k]; if (!items) return;
-      items.sort(byDay);
-      var tot = items.reduce(function (n, c) { return n + (num(c.montant) || 0); }, 0), unknown = items.filter(function (c) { return num(c.montant) == null; }).length;
+      items.sort(function (a, b) { var pa = a.c ? isPaid(a.c) : false, pb = b.c ? isPaid(b.c) : false; if (pa !== pb) return pa ? 1 : -1; return (a.c ? dayOf(a.c) : a.m._d.getDate()) - (b.c ? dayOf(b.c) : b.m._d.getDate()); });
+      var left = 0, unknown = 0;
+      items.forEach(function (x) { if (x.m) left += x.m._amt; else if (num(x.c.montant) == null) unknown++; else if (!isPaid(x.c)) left += num(x.c.montant); });
       var hdr = el('li', 'grp'); hdr.style.setProperty('--c', cvar(k)); hdr.setAttribute('role', 'button'); hdr.setAttribute('aria-expanded', !fixCollapsed[k]);
-      var kk = el('span', 'k'); kk.appendChild(pi(k)); kk.appendChild(el('b', null, CATS[k].l)); kk.appendChild(el('span', 'cnt', items.length + (items.length > 1 ? ' charges' : ' charge') + (unknown ? ', ' + unknown + ' sans montant' : ''))); hdr.appendChild(kk);
+      var kk = el('span', 'k'); kk.appendChild(pi(k)); kk.appendChild(el('b', null, CATS[k].l)); kk.appendChild(el('span', 'cnt', items.length + (items.length > 1 ? ' lignes' : ' ligne') + (unknown ? ', ' + unknown + ' sans montant' : ''))); hdr.appendChild(kk);
       hdr.appendChild(el('span', 'chev', fixCollapsed[k] ? '▸' : '▾'));
-      hdr.appendChild(el('span', 'v', eur(tot)));
+      hdr.appendChild(el('span', 'v', 'reste ' + eur(left)));
       hdr.addEventListener('click', function () { fixCollapsed[k] = !fixCollapsed[k]; renderFixList(); });
       box.appendChild(hdr);
-      items.forEach(function (c) { var li = fixRow(c, ctx); li.classList.add('item'); if (fixCollapsed[k]) li.classList.add('hid'); box.appendChild(li); });
+      items.forEach(function (x) { var li = x.c ? fixRow(x.c, ctx) : prevRow(x.m); li.classList.add('item'); if (fixCollapsed[k]) li.classList.add('hid'); box.appendChild(li); });
     });
   }
-
   var monthOffset = 0; // 0 = mois en cours ; −1 = mois précédent…
   $('m-prev').addEventListener('click', function () { monthOffset--; if (state) render(); });
   $('m-next').addEventListener('click', function () { if (monthOffset < 1) { monthOffset++; if (state) render(); } });
-  var mvSort = 'date', mvSide = 'all', mvCollapsed = {};
-  try { var pv = localStorage.getItem('sib-mv-sort'); if (pv === 'date' || pv === 'cat') mvSort = pv; var ps = localStorage.getItem('sib-mv-side'); if (ps === 'all' || ps === 'in' || ps === 'out') mvSide = ps; } catch (e) {}
-  var lastMonthMv = [];
-  Array.prototype.forEach.call(document.querySelectorAll('#seg-mv button'), function (btn) {
-    btn.addEventListener('click', function () { mvSort = btn.dataset.v; try { localStorage.setItem('sib-mv-sort', mvSort); } catch (e) {} renderMonthList(lastMonthMv); });
+  var mvSort = 'date', mvCollapsed = {}, lastLists = {};
+  try { var pv = localStorage.getItem('sib-mv-sort'); if (pv === 'date' || pv === 'cat') mvSort = pv; } catch (e) {}
+  Array.prototype.forEach.call(document.querySelectorAll('#seg-in button, #seg-out button'), function (btn) {
+    btn.addEventListener('click', function () { mvSort = btn.dataset.v; try { localStorage.setItem('sib-mv-sort', mvSort); } catch (e) {} Object.keys(lastLists).forEach(function (id) { renderMvList(id, lastLists[id]); }); });
   });
-  Array.prototype.forEach.call(document.querySelectorAll('#seg-mv-side button'), function (btn) {
-    btn.addEventListener('click', function () { mvSide = btn.dataset.v; try { localStorage.setItem('sib-mv-side', mvSide); } catch (e) {} renderMonthList(lastMonthMv); });
-  });
-  function renderMonthList(monthMv) {
-    lastMonthMv = monthMv;
-    Array.prototype.forEach.call(document.querySelectorAll('#seg-mv button'), function (b) { b.setAttribute('aria-pressed', b.dataset.v === mvSort); });
-    Array.prototype.forEach.call(document.querySelectorAll('#seg-mv-side button'), function (b) { b.setAttribute('aria-pressed', b.dataset.v === mvSide); });
-    var box = $('mv-rows'); box.innerHTML = '';
-    // Rentré = entrées ; Dépensé = sorties ; les virements, retraits et mises de côté restent dans « Tout » seulement
-    var list = monthMv.filter(function (m) { return mvSide === 'all' || (!isInternal(m) && m.sens === (mvSide === 'in' ? 'entree' : 'sortie')); });
-    if (!list.length) { box.appendChild(el('li', 'empty', mvSide === 'all' ? 'Rien ce mois-ci pour l’instant.' : (mvSide === 'in' ? 'Rien de rentré ce mois-ci pour l’instant.' : 'Rien de dépensé ce mois-ci pour l’instant.'))); return; }
+  function renderMvList(boxId, list, emptyText) {
+    lastLists[boxId] = list;
+    Array.prototype.forEach.call(document.querySelectorAll('#seg-in button, #seg-out button'), function (b) { b.setAttribute('aria-pressed', b.dataset.v === mvSort); });
+    var box = $(boxId); box.innerHTML = '';
+    var isIn = boxId === 'in-rows';
+    list = list.slice();
+    if (!list.length) { box.appendChild(el('li', 'empty', emptyText || 'Rien pour l’instant.')); return; }
     if (mvSort === 'date') {
       list.sort(function (a, b) { return b._d - a._d || String(b.cree || '').localeCompare(String(a.cree || '')); });
-      list.forEach(function (m) { box.appendChild(rowFor(m, m.sens === 'entree')); });
+      list.forEach(function (m) { box.appendChild(rowFor(m, isIn)); });
       return;
     }
     var groups = {};
     list.forEach(function (m) { var k = catOf(m); (groups[k] = groups[k] || []).push(m); });
     CAT_ORDER.forEach(function (k) {
       var items = groups[k]; if (!items) return;
+      var ck = boxId + ':' + k;
       items.sort(function (a, b) { return b._d - a._d; });
-      var tot = items.reduce(function (n, m) { return n + (m.sens === 'entree' ? 1 : -1) * m._amt; }, 0);
-      var hdr = el('li', 'grp'); hdr.style.setProperty('--c', cvar(k)); hdr.setAttribute('role', 'button'); hdr.setAttribute('aria-expanded', !mvCollapsed[k]);
+      var tot = sumBy(items);
+      var hdr = el('li', 'grp'); hdr.style.setProperty('--c', cvar(k)); hdr.setAttribute('role', 'button'); hdr.setAttribute('aria-expanded', !mvCollapsed[ck]);
       var kk = el('span', 'k'); kk.appendChild(pi(k)); kk.appendChild(el('b', null, CATS[k].l)); kk.appendChild(el('span', 'cnt', items.length + (items.length > 1 ? ' lignes' : ' ligne'))); hdr.appendChild(kk);
-      hdr.appendChild(el('span', 'chev', mvCollapsed[k] ? '▸' : '▾'));
-      hdr.appendChild(el('span', 'v', (tot >= 0 ? '+ ' : '− ') + eur(Math.abs(tot))));
-      hdr.addEventListener('click', function () { mvCollapsed[k] = !mvCollapsed[k]; renderMonthList(lastMonthMv); });
+      hdr.appendChild(el('span', 'chev', mvCollapsed[ck] ? '▸' : '▾'));
+      hdr.appendChild(el('span', 'v', (isIn ? '+ ' : '− ') + eur(tot)));
+      hdr.addEventListener('click', function () { mvCollapsed[ck] = !mvCollapsed[ck]; renderMvList(boxId, lastLists[boxId], emptyText); });
       box.appendChild(hdr);
-      items.forEach(function (m) { var li = rowFor(m, m.sens === 'entree'); li.classList.add('item'); if (mvCollapsed[k]) li.classList.add('hid'); box.appendChild(li); });
+      items.forEach(function (m) { var li = rowFor(m, isIn); li.classList.add('item'); if (mvCollapsed[ck]) li.classList.add('hid'); box.appendChild(li); });
     });
   }
   var tipEl = null;
@@ -1171,20 +1249,23 @@ details.det{font-size:13px} details.det summary{cursor:pointer;color:var(--accen
     var labs = tile.querySelectorAll('.barlab span'); labs[0].textContent = l1; labs[1].textContent = l2;
   }
 
-  function rowFor(m, isIn, withDate) {
+  function accLabel(id) { var a = ACCOUNTS.filter(function (x) { return x.id === id; })[0]; return a ? a.e + ' ' + a.l : (id || '?'); }
+  function rowFor(m, isIn, opts) {
+    opts = opts || {};
     var li = el('li'); li.style.setProperty('--c', cvar(catOf(m)));
     var k = el('span', 'k');
     k.appendChild(pi(catOf(m)));
     var b = el('b', null, m.libelle || m.categorie || '(sans libellé)'); k.appendChild(b);
     k.appendChild(el('span', 'd', fmtShort(m._d)));
     var nat = m.nature;
+    if (opts.internal) { var from = accId(m.compte) || mainAcc(), to = accId(m.vers) || (m.nature === 'epargne' ? 'livret' : null); k.appendChild(el('span', 'tag', accLabel(from) + ' → ' + (to ? accLabel(to) : '?'))); }
     if (nat === 'autre') k.appendChild(el('span', 'tag', 'c’est quoi ?'));
-    if ((m.statut || '') === 'prevu') k.appendChild(el('span', 'tag acc', 'prévu'));
+    if ((m.statut || '') === 'prevu') k.appendChild(el('span', 'tag ' + (opts.stale ? 'check' : 'acc'), opts.stale ? 'prévu, pas vu passer' : 'prévu'));
     if (isCashDate(m)) k.appendChild(el('span', 'tag', '💵 liquide, non déclaré'));
     if (m.verif) k.appendChild(el('span', 'tag check', 'à vérifier'));
     li.appendChild(k);
     var cls = 'v' + (isIn ? (nat === 'revenu' && (m.statut || '') !== 'prevu' ? ' ok' : ' q') : ' no');
-    li.appendChild(el('span', cls, (isIn ? '+ ' : '− ') + eur(m._amt)));
+    li.appendChild(el('span', cls, (opts.internal ? '' : (isIn ? '+ ' : '− ')) + eur(m._amt)));
     return li;
   }
 
