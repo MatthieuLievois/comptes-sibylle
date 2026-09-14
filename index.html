@@ -274,6 +274,7 @@ details.det{font-size:13px} details.det summary{cursor:pointer;color:var(--accen
 .rows.colored .tag.check{background:#fff;color:var(--warn)} .rows.colored .tag.ok{background:#fff;color:var(--good)} .rows.colored .tag.soon{background:rgba(255,255,255,.9);color:var(--accent)}
 .rows.colored .pi{background:#fff;border-color:#fff;text-shadow:none}
 .rows.colored li.grp{cursor:pointer;padding:8px 10px 8px 6px;margin-top:6px;font-size:14px}
+.rows.colored li.grp.static{cursor:default}
 .rows.colored li.grp .k b{font-weight:700} .rows.colored li.grp .cnt{font-size:11.5px;color:rgba(255,255,255,.85);font-weight:500}
 .rows.colored li.grp .chev{margin-left:auto;margin-right:8px;opacity:.85;font-size:12px}
 .rows.colored li.item{margin-left:14px;background:color-mix(in srgb, var(--c) 78%, #fff)}
@@ -396,6 +397,7 @@ button.tag.act:hover{filter:brightness(1.08)} button.tag.act:active{transform:tr
     <div class="item"><span class="eyebrow">Tes 4 poches aujourd’hui</span><span class="val num" id="sum-now">—</span></div>
     <div class="item"><span class="eyebrow" id="sum-in-lab">Doit rentrer</span><span class="val num good" id="sum-in">—</span></div>
     <div class="item"><span class="eyebrow" id="sum-out-lab">Doit sortir</span><span class="val num bad" id="sum-out">—</span></div>
+    <div class="item" id="sum-due-item" hidden><span class="eyebrow">Dû, sans date</span><span class="val num" id="sum-due">—</span></div>
     <div class="item"><span class="eyebrow" id="sum-end-lab">Solde estimé fin de mois</span><span class="val num" id="sum-end">—</span></div>
     <p class="note" id="sum-note" style="flex-basis:100%"></p>
   </div>
@@ -840,8 +842,19 @@ button.tag.act:hover{filter:brightness(1.08)} button.tag.act:active{transform:tr
     // c) les rentrées prévues datées dans le mois (dates signées, remboursements ou aides annoncés)
     // dans le mois en cours, un prévu plus ancien pas encore arrivé reste attendu (il compte dans le solde estimé)
     var inWin = function (m) { return monthCmp === 0 ? m._d <= mEnd : inRange(m._d, mStart, mEnd); };
-    var prevIn = mv.filter(function (m) { return m.sens === 'entree' && !enc(m) && !isInternal(m) && inWin(m); }).sort(function (a, b) { return a._d - b._d; });
+    var prevIn = mv.filter(function (m) { return m.sens === 'entree' && !enc(m) && !isInternal(m) && !isDue(m) && inWin(m); }).sort(function (a, b) { return a._d - b._d; });
     prevIn.forEach(function (m) { expRows.appendChild(rowFor(m, true, { stale: monthCmp < 0 || m._d < today, canReceive: true })); expTot += m._amt; });
+    // cachets dus, date de paiement inconnue : listés à part, hors du total du mois (et hors des colonnes du graphique)
+    var dueMv = mv.filter(function (m) { return m.sens === 'entree' && isDue(m); }).sort(function (a, b) { return a._d - b._d; });
+    var dueTot = sumBy(dueMv);
+    if (dueMv.length) {
+      var dh = el('li', 'grp static'); dh.style.setProperty('--c', cvar('cachet'));
+      var dk = el('span', 'k'); dk.appendChild(pi('cachet')); dk.appendChild(el('b', null, 'Dû, sans date de paiement')); dk.appendChild(el('span', 'cnt', dueMv.length + (dueMv.length > 1 ? ' cachets' : ' cachet') + ' · hors du total du mois')); dh.appendChild(dk);
+      dh.appendChild(el('span', 'v', '+ ' + eur(dueTot)));
+      expRows.appendChild(dh);
+      dueMv.forEach(function (m) { var li = rowFor(m, true, { canReceive: true, due: true }); li.classList.add('item'); expRows.appendChild(li); });
+      expNotes.push(eur(dueTot) + ' de cachets te sont dus sans date de paiement connue : ils n’entrent dans aucun mois tant qu’ils ne sont pas arrivés. Si tu apprends la date, dis-la à ton Claude (« paiement le 5/10 ») et le cachet rejoint son mois.');
+    }
     if (!expRows.children.length) expRows.appendChild(el('li', 'empty', monthCmp < 0 ? 'Rien n’était enregistré comme attendu.' : 'Rien d’attendu enregistré. Dis à ton Claude tes dates (« date le 18, 250 € », « 150 € en liquide le 25 ») : elles apparaîtront ici, puis monteront dans « Rentré » une fois payées.'));
     $('exp-total-lab').textContent = monthCmp < 0 ? 'Était attendu en ' + MONTHS[mo] : 'Attendu ' + (monthCmp === 0 ? 'd’ici la fin ' + deM : 'en ' + MONTHS[mo]);
     $('exp-total').textContent = eur(expTot); $('exp-total-top').textContent = eur(expTot); $('exp-total-lab-top').textContent = $('exp-total-lab').textContent;
@@ -869,6 +882,7 @@ button.tag.act:hover{filter:brightness(1.08)} button.tag.act:active{transform:tr
     var gNow = globalBalance(today, false), gEnd = globalBalance(monthCmp < 0 ? mEnd : mEnd, monthCmp >= 0);
     $('sum-now').textContent = gNow.known ? eur(gNow.v) : '—';
     $('sum-in').textContent = '+ ' + eur(expTot); $('sum-out').textContent = '− ' + eur(leftTotal);
+    $('sum-due-item').hidden = !dueMv.length; $('sum-due').textContent = '+ ' + eur(dueTot);
     $('sum-in-lab').textContent = monthCmp < 0 ? 'Était attendu' : 'Doit rentrer'; $('sum-out-lab').textContent = monthCmp < 0 ? 'Sans paiement trouvé' : 'Doit sortir';
     $('sum-end-lab').textContent = (monthCmp < 0 ? 'Solde fin ' : 'Solde estimé fin ') + MONTHS[mo];
     var endEl = $('sum-end'); endEl.textContent = gEnd.known ? eur(gEnd.v) : '—'; endEl.className = 'val num ' + (gEnd.known ? (gEnd.v < 0 ? 'bad' : 'good') : '');
@@ -947,6 +961,15 @@ button.tag.act:hover{filter:brightness(1.08)} button.tag.act:active{transform:tr
     return accId(m.compte) !== 'liquide';
   }
   function isCashDate(m) { return isCachet(m) && !isDeclared(m); }
+  // Date de paiement d’un cachet prévu : champ date_paiement, sinon une note « paiement le 05/10 » ; sinon inconnue.
+  function payDateOf(m) {
+    var d = parseDate(m.date_paiement); if (d) return d;
+    var mm = String(m.note || '').match(/paiement\s*(?:pr[ée]vu|attendu)?\s*(?:le|vers le|autour du)?\s*(\d{1,2})[\/.](\d{1,2})(?:[\/.](\d{4}))?/i);
+    if (mm) { var y = mm[3] ? +mm[3] : m._d.getFullYear(); d = new Date(y, +mm[2] - 1, +mm[1]); if (!mm[3] && d < m._d) d.setFullYear(y + 1); if (!isNaN(d)) return d; }
+    return null;
+  }
+  // Un cachet déclaré, prévu, sans date de paiement connue : de l’argent dû, hors du calendrier (petite colonne « dû »).
+  function isDue(m) { return (m.statut || 'encaisse') === 'prevu' && isCachet(m) && isDeclared(m) && !payDateOf(m); }
   // La date qui compte pour France Travail est celle de la prestation, pas celle du paiement (souvent des semaines plus tard).
   // On la prend dans le champ date_prestation, sinon dans une note « prestation du 18/07 », sinon la date du mouvement.
   function cachetGigDate(m) {
@@ -978,9 +1001,11 @@ button.tag.act:hover{filter:brightness(1.08)} button.tag.act:active{transform:tr
     var main = mainAcc();
     mv.forEach(function (m) {
       var prevu = (m.statut || 'encaisse') === 'prevu';
-      // un prévu dont la date est déjà passée (date de la prestation, paiement pas encore arrivé) est attendu d’un jour à l’autre
-      var d = prevu && m._d <= today ? addDays(today, 1) : m._d;
       var from = accId(m.compte) || main;
+      if (isDue(m)) { FLOWS.push({ d: m._d, v: m._amt, sens: 'entree', cat: catOf(m), acc: from, hatch: true, due: true, internal: false }); return; }
+      // un prévu daté : à sa date de paiement si elle est connue ; si la date est déjà passée, attendu d’un jour à l’autre
+      var d = prevu ? (payDateOf(m) || m._d) : m._d;
+      if (prevu && d <= today) d = addDays(today, 1);
       if (isInternal(m)) {
         var to = accId(m.vers) || (m.nature === 'epargne' ? 'livret' : null);
         var cat = to === 'liquide' || from === 'liquide' ? 'liquide' : (m.nature === 'epargne' || to === 'livret' ? 'epargne' : 'vir');
@@ -1015,7 +1040,7 @@ button.tag.act:hover{filter:brightness(1.08)} button.tag.act:active{transform:tr
     var an = anchorOf(id); if (!an) return null;
     var d = an.d || T, bal = an.v;
     FLOWS.forEach(function (f) {
-      if (f.acc !== id) return;
+      if (f.acc !== id || f.due) return;
       if (!withFuture && f.hatch) return;
       var sg = f.sens === 'entree' ? 1 : -1;
       if (f.d > d && f.d <= T) bal += sg * f.v;
@@ -1112,9 +1137,11 @@ button.tag.act:hover{filter:brightness(1.08)} button.tag.act:active{transform:tr
     // agrégation par période
     periods.forEach(function (p) { p.inC = {}; p.outC = {}; p.inT = 0; p.outT = 0; p.inH = 0; p.outH = 0; p.est = {}; p.cash = 0; });
     var used = {};
+    var due = { label: 'Dû, sans date', inC: {}, outC: {}, inT: 0, outT: 0, inH: 0, outH: 0, est: {}, cash: 0, due: true };
     FLOWS.forEach(function (f) {
       if (!sel[f.acc]) return;
       if (f.internal && f.other) return; // entre deux des quatre poches : l’argent change de place, ce n’est ni une rentrée ni une dépense
+      if (f.due) { var dk = f.cat + '~'; due.inC[dk] = (due.inC[dk] || 0) + f.v; due.inT += f.v; due.inH += f.v; used[f.cat] = true; return; }
       if (f.d > horizon) return;
       for (var i = 0; i < periods.length; i++) {
         var p = periods[i]; if (f.d < p.start || f.d > p.end) continue;
@@ -1126,9 +1153,10 @@ button.tag.act:hover{filter:brightness(1.08)} button.tag.act:active{transform:tr
     });
     periods.forEach(function (p) { p.net = p.inT - p.outT; });
     // ---- barres ----
-    var n = periods.length, W = Math.max(340, n * 92), ml = 6, mr = 6, mt = 22, mb = 26;
+    var n = periods.length, hasDue = due.inT > 0, dueW = hasDue ? 64 : 0, W = Math.max(340, n * 92 + dueW), ml = 6, mr = 6, mt = 22, mb = 26;
     var posMax = 1, negMax = 0;
     periods.forEach(function (p) { posMax = Math.max(posMax, p.inT, p.outT, p.net); negMax = Math.max(negMax, -p.net); });
+    if (hasDue) posMax = Math.max(posMax, due.inT);
     var plotH = 250, posH = plotH * posMax / (posMax + negMax), base = mt + posH, H = mt + plotH + mb;
     var scale = posH / posMax;
     var svg = svgEl('svg', { viewBox: '0 0 ' + W + ' ' + H, role: 'img', 'aria-label': 'Rentré, dépensé et solde par période' });
@@ -1140,7 +1168,7 @@ button.tag.act:hover{filter:brightness(1.08)} button.tag.act:active{transform:tr
       defs.appendChild(pat);
     });
     svg.appendChild(defs);
-    var gw = (W - ml - mr) / n, bw = Math.max(8, Math.min(26, (gw - 14) / 3));
+    var gw = (W - ml - mr - dueW) / n, bw = Math.max(8, Math.min(26, (gw - 14) / 3));
     periods.forEach(function (p, i) {
       var x0 = ml + i * gw, cx = x0 + gw / 2;
       if (p.current) svg.appendChild(svgEl('rect', { x: x0 + 1, y: 4, width: gw - 2, height: H - 8, rx: 8, class: 'now' }));
@@ -1160,6 +1188,15 @@ button.tag.act:hover{filter:brightness(1.08)} button.tag.act:active{transform:tr
       }
       var lab = svgEl('text', { x: cx, y: H - 8, 'text-anchor': 'middle', class: 'per' + (p.future ? ' fut' : '') }); lab.textContent = p.label; svg.appendChild(lab);
     });
+    if (hasDue) { // colonne hors temps : cachets dus, date de paiement inconnue
+      var dx0 = ml + n * gw, dcx = dx0 + dueW / 2;
+      var sepLine = svgEl('line', { x1: dx0, y1: 6, x2: dx0, y2: H - 6, class: 'grid' }); sepLine.setAttribute('stroke-dasharray', '3 4'); svg.appendChild(sepLine);
+      var gDue = svgEl('g'); svg.appendChild(gDue);
+      drawStack(gDue, due.inC, dcx - bw / 2, base, bw, scale);
+      attachTip(gDue, function () { return tipFor(due, 'entree'); });
+      var td = svgEl('text', { x: dcx, y: base - due.inT * scale - 3, 'text-anchor': 'middle', class: 'val in' }); td.textContent = '+' + fmtK(due.inT); svg.appendChild(td);
+      var ld = svgEl('text', { x: dcx, y: H - 8, 'text-anchor': 'middle', class: 'per fut' }); ld.textContent = 'dû'; svg.appendChild(ld);
+    }
     svg.appendChild(svgEl('line', { x1: ml, y1: base, x2: W - mr, y2: base, class: 'grid' }));
     var box = $('bars-svg'); box.innerHTML = ''; box.appendChild(svg);
     // ---- ligne du solde global ----
@@ -1204,7 +1241,7 @@ button.tag.act:hover{filter:brightness(1.08)} button.tag.act:active{transform:tr
     var hs = el('span', 'legrow small hatch'); hs.appendChild(el('i', 'hatchsw')); hs.appendChild(el('span', null, 'hachuré = prévu, pas encore passé')); neutral.appendChild(hs);
     leg.appendChild(neutral);
     var futNoIn = periods.some(function (p) { return p.future && p.outT > 0; }) && !periods.some(function (p) { return p.future && p.inT > 0; });
-    $('chart-note').textContent = (chartSel.length === TOP_ACCOUNTS.length ? 'Les quatre poches ensemble. Les virements et retraits entre elles ne sont ni des rentrées ni des dépenses : ils déplacent l’argent d’une carte à l’autre, en haut.' : 'Vue partielle : seuls les mouvements des poches affichées sont comptés. Les virements et retraits entre tes quatre poches n’apparaissent jamais ici.') + (futNoIn ? ' Aucune rentrée à venir n’est enregistrée : les périodes futures ne montrent que ce qui va sortir. Dis à ton Claude ce qui est attendu (« cachet 250 € le 18, pas encore payé »).' : '') + (FLOWS.some(function (f) { return f.est && f.d <= horizon; }) ? ' Le France Travail à venir est estimé par la page : jours du mois × allocation, moins 1,56 jour par cachet daté (détail dans le bandeau des droits, en bas).' : '');
+    $('chart-note').textContent = (chartSel.length === TOP_ACCOUNTS.length ? 'Les quatre poches ensemble. Les virements et retraits entre elles ne sont ni des rentrées ni des dépenses : ils déplacent l’argent d’une carte à l’autre, en haut.' : 'Vue partielle : seuls les mouvements des poches affichées sont comptés. Les virements et retraits entre tes quatre poches n’apparaissent jamais ici.') + (futNoIn ? ' Aucune rentrée à venir n’est enregistrée : les périodes futures ne montrent que ce qui va sortir. Dis à ton Claude ce qui est attendu (« cachet 250 € le 18, pas encore payé »).' : '') + (FLOWS.some(function (f) { return f.est && f.d <= horizon; }) ? ' Le France Travail à venir est estimé par la page : jours du mois × allocation, moins 1,56 jour par cachet daté.' : '') + (hasDue ? ' La petite colonne « dû », à droite : les cachets qui te sont dus mais dont la date de paiement est inconnue ; ils ne sont comptés dans aucun mois tant qu’ils ne sont pas arrivés.' : '');
   }
   // ---- dépenses fixes : par date ou par catégorie ----
   var fixSort = 'date', fixCollapsed = {}, fixCtx = null;
@@ -1310,7 +1347,7 @@ button.tag.act:hover{filter:brightness(1.08)} button.tag.act:active{transform:tr
   function tipFor(p, which) {
     var rows = [], tot = 0, bag = which === 'entree' ? p.inC : p.outC;
     stackOrder(bag).reverse().forEach(function (k) { var a = bag[k] || 0, b = bag[k + '~'] || 0; tot += a + b; rows.push({ k: k, a: a, b: b, est: p.est && p.est[k], cash: k === 'cachet' && which === 'entree' ? p.cash : 0 }); });
-    var h = '<div class="tip-h"><span>' + p.label + ' · ' + (which === 'entree' ? 'rentré' : 'dépensé') + '</span><b>' + eur(tot) + '</b></div><div class="tip-r"><em>de haut en bas, comme la colonne</em></div>';
+    var h = '<div class="tip-h"><span>' + p.label + (p.due ? '' : ' · ' + (which === 'entree' ? 'rentré' : 'dépensé')) + '</span><b>' + eur(tot) + '</b></div><div class="tip-r"><em>' + (p.due ? 'cachets qui te sont dus, date de paiement inconnue : hors des colonnes des mois' : 'de haut en bas, comme la colonne') + '</em></div>';
     rows.forEach(function (r) { h += '<div class="tip-r"><i style="background:' + cvar(r.k) + '"></i><span>' + CATS[r.k].e + ' ' + CATS[r.k].l + (r.b ? ' <em>(dont ' + eur(r.b) + (r.est ? ' estimé par la page' : ' prévu') + ')</em>' : '') + (r.cash ? ' <em>(dont ' + eur(r.cash) + ' en liquide, non déclaré)</em>' : '') + '</span><b>' + eur(r.a + r.b) + '</b></div>'; });
     return h;
   }
@@ -1359,7 +1396,7 @@ button.tag.act:hover{filter:brightness(1.08)} button.tag.act:active{transform:tr
     var nat = m.nature;
     if (opts.internal) { var from = accId(m.compte) || mainAcc(), to = accId(m.vers) || (m.nature === 'epargne' ? 'livret' : null); k.appendChild(el('span', 'tag', accLabel(from) + ' → ' + (to ? accLabel(to) : '?'))); }
     if (nat === 'autre' && catOf(m) !== 'liquide') k.appendChild(el('span', 'tag', 'c’est quoi ?'));
-    if ((m.statut || '') === 'prevu') k.appendChild(el('span', 'tag soon', 'prévu'));
+    if ((m.statut || '') === 'prevu') k.appendChild(el('span', 'tag soon', opts.due ? 'dû · date inconnue' : 'prévu'));
     if (isCashDate(m)) k.appendChild(el('span', 'tag', '💵 liquide, non déclaré'));
     if (m.verif) { var bv = el('button', 'tag check act', 'à vérifier · ✓ ?'); bv.type = 'button'; bv.title = 'Marquer comme vérifié'; bv.addEventListener('click', function (e) { e.stopPropagation(); actVerif('movements', m.id, m.libelle || m.categorie); }); k.appendChild(bv); }
     if (opts.canReceive && (m.statut || '') === 'prevu' && m.id) { var br = el('button', 'tag ok act', '✓ reçu'); br.type = 'button'; br.title = 'L’argent est arrivé : passer en encaissé'; br.addEventListener('click', function (e) { e.stopPropagation(); actRecu(m); }); k.appendChild(br); }
