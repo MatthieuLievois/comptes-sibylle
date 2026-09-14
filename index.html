@@ -764,17 +764,17 @@ details.moves summary{color:var(--muted)} details.moves .note{margin:4px 0 6px}
     leftTotal += sumBy(prevOut);
     fixCtx = { chargesMonth: chargesMonth, prevOut: prevOut, monthMv: monthMv, y: y, mo: mo, monthCmp: monthCmp, today: today };
     renderFixList();
-    $('fix-total-lab').textContent = monthCmp < 0 ? 'Pas vu passer en ' + MONTHS[mo] : 'Reste à sortir ' + (monthCmp === 0 ? 'd’ici la fin ' + deM : 'en ' + MONTHS[mo]);
+    $('fix-total-lab').textContent = monthCmp < 0 ? 'Sans paiement trouvé en ' + MONTHS[mo] : 'Reste à sortir ' + (monthCmp === 0 ? 'd’ici la fin ' + deM : 'en ' + MONTHS[mo]);
     $('fix-total').textContent = eur(leftTotal);
     var yearly = s.charges.filter(function (c) { return c.periodicite === 'an' && num(c.montant) != null; }).reduce(function (n, c) { return n + num(c.montant); }, 0);
     var monthlyEq = s.charges.filter(function (c) { return chargeIsMonthly(c) && num(c.montant) != null; }).reduce(function (n, c) { return n + num(c.montant); }, 0) + yearly / 12;
-    $('fix-note').textContent = 'Déjà passé : ' + eur(paidTotal) + ' (en grisé, déjà compté dans « Dépensé »).' + (lateN ? ' ' + lateN + ' charge' + (lateN > 1 ? 's' : '') + ' à date dépassée pas vue' + (lateN > 1 ? 's' : '') + ' passer (' + eur(lateTotal) + ') : payée' + (lateN > 1 ? 's' : '') + ' depuis une autre poche, décalée' + (lateN > 1 ? 's' : '') + ', ou manquante' + (lateN > 1 ? 's' : '') + ' dans le coffre ? Non comptée' + (lateN > 1 ? 's' : '') + ' dans le reste à sortir, à vérifier avec ton Claude.' : '') + ' Toutes les charges fixes du mois : ' + eur(fixTotal) + '. Équivalent mensuel, provisions annuelles comprises (÷ 12) : ' + eur(monthlyEq) + '.' + (fixUnknown ? ' ' + fixUnknown + ' montant' + (fixUnknown > 1 ? 's' : '') + ' inconnu' + (fixUnknown > 1 ? 's' : '') + ', non compté' + (fixUnknown > 1 ? 's' : '') + '.' : '');
+    $('fix-note').textContent = 'Déjà passé : ' + eur(paidTotal) + ' (en grisé, déjà compté dans « Dépensé »).' + (lateN ? ' ' + lateN + ' charge' + (lateN > 1 ? 's' : '') + ' à date dépassée sans paiement trouvé (' + eur(lateTotal) + ') : payée' + (lateN > 1 ? 's' : '') + ' depuis une autre poche, décalée' + (lateN > 1 ? 's' : '') + ', ou manquante' + (lateN > 1 ? 's' : '') + ' dans le coffre ? Non comptée' + (lateN > 1 ? 's' : '') + ' dans le reste à sortir, à vérifier avec ton Claude.' : '') + ' Toutes les charges fixes du mois : ' + eur(fixTotal) + '. Équivalent mensuel, provisions annuelles comprises (÷ 12) : ' + eur(monthlyEq) + '.' + (fixUnknown ? ' ' + fixUnknown + ' montant' + (fixUnknown > 1 ? 's' : '') + ' inconnu' + (fixUnknown > 1 ? 's' : '') + ', non compté' + (fixUnknown > 1 ? 's' : '') + '.' : '');
 
     // ---- résumé : aujourd’hui, attendu, à sortir, fin de mois ----
     var gNow = globalBalance(today, false), gEnd = globalBalance(monthCmp < 0 ? mEnd : mEnd, monthCmp >= 0);
     $('sum-now').textContent = gNow.known ? eur(gNow.v) : '—';
     $('sum-in').textContent = '+ ' + eur(expTot); $('sum-out').textContent = '− ' + eur(leftTotal);
-    $('sum-in-lab').textContent = monthCmp < 0 ? 'Était attendu' : 'Doit rentrer'; $('sum-out-lab').textContent = monthCmp < 0 ? 'Pas vu passer' : 'Doit sortir';
+    $('sum-in-lab').textContent = monthCmp < 0 ? 'Était attendu' : 'Doit rentrer'; $('sum-out-lab').textContent = monthCmp < 0 ? 'Sans paiement trouvé' : 'Doit sortir';
     $('sum-end-lab').textContent = (monthCmp < 0 ? 'Solde fin ' : 'Solde estimé fin ') + MONTHS[mo];
     var endEl = $('sum-end'); endEl.textContent = gEnd.known ? eur(gEnd.v) : '—'; endEl.className = 'val num ' + (gEnd.known ? (gEnd.v < 0 ? 'bad' : 'good') : '');
     $('sum-note').textContent = monthCmp < 0 ? 'Pour un mois passé : solde reconstitué à la fin du mois d’après les soldes donnés et les mouvements.' : ('Solde estimé = tes poches aujourd’hui + ce qui doit rentrer − ce qui doit sortir, jour par jour jusqu’au ' + mEnd.getDate() + ' ' + MONTHS[mo] + '. C’est la ligne du graphique « Vue d’ensemble ».' + (gNow.missing.length ? ' Poches sans solde connu, non comptées : ' + gNow.missing.join(', ') + '.' : ''));
@@ -1124,7 +1124,7 @@ details.moves summary{color:var(--muted)} details.moves .note{margin:4px 0 6px}
     if (day) k.appendChild(el('span', 'd', 'le ' + day)); else k.appendChild(el('span', 'tag check', 'jour ?'));
     if (c.periodicite === 'an') k.appendChild(el('span', 'tag', 'annuel'));
     if (paid.length) k.appendChild(el('span', 'tag ok', '✓ payée le ' + paid[0]._d.getDate() + (paid.some(function (m) { return !m.charge_id; }) ? ' · rapprochée' : '')));
-    else if (ctx.monthCmp < 0 || (ctx.monthCmp === 0 && day && day < ctx.today.getDate())) k.appendChild(el('span', 'tag check', 'pas vue passer'));
+    else if (ctx.monthCmp < 0 || (ctx.monthCmp === 0 && day && day < ctx.today.getDate())) k.appendChild(el('span', 'tag check', 'paiement pas trouvé'));
     else k.appendChild(el('span', 'tag acc', 'à venir'));
     if (c.verif && !paid.length) k.appendChild(el('span', 'tag check', 'à vérifier'));
     li.appendChild(k);
@@ -1260,7 +1260,7 @@ details.moves summary{color:var(--muted)} details.moves .note{margin:4px 0 6px}
     var nat = m.nature;
     if (opts.internal) { var from = accId(m.compte) || mainAcc(), to = accId(m.vers) || (m.nature === 'epargne' ? 'livret' : null); k.appendChild(el('span', 'tag', accLabel(from) + ' → ' + (to ? accLabel(to) : '?'))); }
     if (nat === 'autre') k.appendChild(el('span', 'tag', 'c’est quoi ?'));
-    if ((m.statut || '') === 'prevu') k.appendChild(el('span', 'tag ' + (opts.stale ? 'check' : 'acc'), opts.stale ? 'prévu, pas vu passer' : 'prévu'));
+    if ((m.statut || '') === 'prevu') k.appendChild(el('span', 'tag ' + (opts.stale ? 'check' : 'acc'), opts.stale ? 'prévu, paiement pas trouvé' : 'prévu'));
     if (isCashDate(m)) k.appendChild(el('span', 'tag', '💵 liquide, non déclaré'));
     if (m.verif) k.appendChild(el('span', 'tag check', 'à vérifier'));
     li.appendChild(k);
