@@ -147,9 +147,10 @@ button{font:inherit; cursor:pointer}
 .tag.check{background:var(--warn-bg); color:var(--warn); border-color:var(--warn-line)}
 .tag.ok{background:var(--good-bg); color:var(--good); border-color:var(--good-line)}
 .tag.no{background:var(--bad-bg); color:var(--bad); border-color:var(--bad-line)}
-.tag.acc{background:var(--accent-soft); color:var(--accent); border-color:transparent}
+.tag.soon{background:var(--accent-soft); color:var(--accent); border-color:transparent}
 .total{display:flex; justify-content:space-between; align-items:baseline; padding-top:9px; border-top:2px solid var(--line-strong); font-size:14px; font-weight:600}
 .total .v{font-variant-numeric:tabular-nums}
+.total.top{border-top:0;border-bottom:2px solid var(--line-strong);padding:0 0 9px;font-size:15px}
 .empty{font-size:13px; color:var(--faint); padding:6px 0}
 .note{font-size:12px; color:var(--faint); max-width:80ch; margin:0}
 
@@ -270,7 +271,7 @@ details.det{font-size:13px} details.det summary{cursor:pointer;color:var(--accen
 .rows.colored .k{color:rgba(255,255,255,.9)} .rows.colored .k b{color:#fff} .rows.colored .d{color:rgba(255,255,255,.8)}
 .rows.colored .v, .rows.colored .v.ok, .rows.colored .v.no{color:#fff} .rows.colored .v.q{color:rgba(255,255,255,.8)}
 .rows.colored .tag{background:rgba(255,255,255,.22);color:#fff;border-color:transparent}
-.rows.colored .tag.check{background:#fff;color:var(--warn)} .rows.colored .tag.ok{background:#fff;color:var(--good)} .rows.colored .tag.acc{background:rgba(255,255,255,.9);color:var(--accent)}
+.rows.colored .tag.check{background:#fff;color:var(--warn)} .rows.colored .tag.ok{background:#fff;color:var(--good)} .rows.colored .tag.soon{background:rgba(255,255,255,.9);color:var(--accent)}
 .rows.colored .pi{background:#fff;border-color:#fff;text-shadow:none}
 .rows.colored li.grp{cursor:pointer;padding:8px 10px 8px 6px;margin-top:6px;font-size:14px}
 .rows.colored li.grp .k b{font-weight:700} .rows.colored li.grp .cnt{font-size:11.5px;color:rgba(255,255,255,.85);font-weight:500}
@@ -377,6 +378,7 @@ button.tag.act:hover{filter:brightness(1.08)} button.tag.act:active{transform:tr
   <div class="cols">
     <div class="card">
       <h2>📥 Ce qui doit rentrer</h2>
+      <div class="total top"><span id="exp-total-lab-top">Attendu</span><span class="v" id="exp-total-top">—</span></div>
       <ul class="rows colored" id="exp-rows"></ul>
       <div class="total"><span id="exp-total-lab">Attendu ce mois</span><span class="v" id="exp-total">—</span></div>
       <p class="note" id="exp-note"></p>
@@ -384,6 +386,7 @@ button.tag.act:hover{filter:brightness(1.08)} button.tag.act:active{transform:tr
     <div class="card">
       <div class="chart-head"><h2>📤 Ce qui doit sortir</h2>
         <div class="seg" id="seg-fix" role="group" aria-label="Tri"><button type="button" data-v="date">Par date</button><button type="button" data-v="cat">Par catégorie</button></div></div>
+      <div class="total top"><span id="fix-total-lab-top">Reste à sortir</span><span class="v" id="fix-total-top">—</span></div>
       <ul class="rows colored" id="fix-rows"></ul>
       <div class="total"><span id="fix-total-lab">Reste à sortir</span><span class="v" id="fix-total">—</span></div>
       <p class="note" id="fix-note"></p>
@@ -815,7 +818,7 @@ button.tag.act:hover{filter:brightness(1.08)} button.tag.act:active{transform:tr
     // a) le versement attendu CE mois (au titre du mois précédent), estimé par la page
     FLOWS.filter(function (f) { return f.est && inRange(f.d, mStart, mEnd); }).forEach(function (f) {
       var pm = (mo + 11) % 12;
-      expRows.appendChild(ftLine('France Travail pour ' + MONTHS[pm], 'début ' + MONTHS[mo], f.v, { tags: [['estimé par la page', 'acc']] }));
+      expRows.appendChild(ftLine('France Travail pour ' + MONTHS[pm], 'début ' + MONTHS[mo], f.v, { tags: [['estimé par la page', 'soon']] }));
       expTot += f.v;
     });
     // b) le France Travail AU TITRE de ce mois, versé le mois suivant : c’est lui que tes dates font bouger
@@ -830,7 +833,7 @@ button.tag.act:hover{filter:brightness(1.08)} button.tag.act:active{transform:tr
       } else if (ft.payDate <= today) {
         expNotes.push('Aucun versement France Travail enregistré début ' + nextM + ' pour ' + MONTHS[mo] + '. Attendu d’après tes cachets : ' + detail + '. Dis à ton Claude le montant reçu.');
       } else {
-        expRows.appendChild(ftLine('France Travail pour ' + MONTHS[mo], '→ début ' + nextM, ft.amt, { cls: 'later', tags: [['estimé, versé le mois prochain', 'acc']] }));
+        expRows.appendChild(ftLine('France Travail pour ' + MONTHS[mo], '→ début ' + nextM, ft.amt, { cls: 'later', tags: [['estimé, versé le mois prochain', 'soon']] }));
         expNotes.push('France Travail pour ' + MONTHS[mo] + ', versé début ' + nextM + ' (la date exacte varie), donc hors du total de ce mois : ' + detail + '. Chaque cachet déclaré joué en ' + MONTHS[mo] + ' retire ' + (hStd * ftCoef()).toFixed(2).replace('.', ',') + ' jour, soit ' + eur(hStd * ftCoef() * ft.aj) + ' ; une date payée en liquide ne retire rien. La date qui compte est celle de la prestation, pas celle du paiement.');
       }
     }
@@ -841,7 +844,7 @@ button.tag.act:hover{filter:brightness(1.08)} button.tag.act:active{transform:tr
     prevIn.forEach(function (m) { expRows.appendChild(rowFor(m, true, { stale: monthCmp < 0 || m._d < today, canReceive: true })); expTot += m._amt; });
     if (!expRows.children.length) expRows.appendChild(el('li', 'empty', monthCmp < 0 ? 'Rien n’était enregistré comme attendu.' : 'Rien d’attendu enregistré. Dis à ton Claude tes dates (« date le 18, 250 € », « 150 € en liquide le 25 ») : elles apparaîtront ici, puis monteront dans « Rentré » une fois payées.'));
     $('exp-total-lab').textContent = monthCmp < 0 ? 'Était attendu en ' + MONTHS[mo] : 'Attendu ' + (monthCmp === 0 ? 'd’ici la fin ' + deM : 'en ' + MONTHS[mo]);
-    $('exp-total').textContent = eur(expTot);
+    $('exp-total').textContent = eur(expTot); $('exp-total-top').textContent = eur(expTot); $('exp-total-lab-top').textContent = $('exp-total-lab').textContent;
     $('exp-note').textContent = expNotes.join(' ');
 
     // ---- étage 2, droite : ce qui doit sortir (charges fixes non passées en tête, passées en grisé) ----
@@ -857,7 +860,7 @@ button.tag.act:hover{filter:brightness(1.08)} button.tag.act:active{transform:tr
     fixCtx = { chargesMonth: chargesMonth, prevOut: prevOut, monthMv: monthMv, y: y, mo: mo, monthCmp: monthCmp, today: today };
     renderFixList();
     $('fix-total-lab').textContent = monthCmp < 0 ? 'Sans paiement trouvé en ' + MONTHS[mo] : 'Reste à sortir ' + (monthCmp === 0 ? 'd’ici la fin ' + deM : 'en ' + MONTHS[mo]);
-    $('fix-total').textContent = eur(leftTotal);
+    $('fix-total').textContent = eur(leftTotal); $('fix-total-top').textContent = eur(leftTotal); $('fix-total-lab-top').textContent = $('fix-total-lab').textContent;
     var yearly = s.charges.filter(function (c) { return c.periodicite === 'an' && num(c.montant) != null; }).reduce(function (n, c) { return n + num(c.montant); }, 0);
     var monthlyEq = s.charges.filter(function (c) { return chargeIsMonthly(c) && num(c.montant) != null; }).reduce(function (n, c) { return n + num(c.montant); }, 0) + yearly / 12;
     $('fix-note').textContent = 'Déjà passé : ' + eur(paidTotal) + ' (en grisé, déjà compté dans « Dépensé »).' + (lateN ? ' ' + lateN + ' charge' + (lateN > 1 ? 's' : '') + ' à date dépassée sans paiement trouvé (' + eur(lateTotal) + ') : payée' + (lateN > 1 ? 's' : '') + ' depuis une autre poche, décalée' + (lateN > 1 ? 's' : '') + ', ou manquante' + (lateN > 1 ? 's' : '') + ' dans le coffre ? Non comptée' + (lateN > 1 ? 's' : '') + ' dans le reste à sortir, à vérifier avec ton Claude.' : '') + ' Toutes les charges fixes du mois : ' + eur(fixTotal) + '. Équivalent mensuel, provisions annuelles comprises (÷ 12) : ' + eur(monthlyEq) + '.' + (fixUnknown ? ' ' + fixUnknown + ' montant' + (fixUnknown > 1 ? 's' : '') + ' inconnu' + (fixUnknown > 1 ? 's' : '') + ', non compté' + (fixUnknown > 1 ? 's' : '') + '.' : '');
@@ -1220,7 +1223,7 @@ button.tag.act:hover{filter:brightness(1.08)} button.tag.act:active{transform:tr
     if (c.periodicite === 'an') k.appendChild(el('span', 'tag', 'annuel'));
     if (paid.length) k.appendChild(el('span', 'tag ok', '✓ payée le ' + paid[0]._d.getDate() + (paid.some(function (m) { return !m.charge_id; }) ? ' · rapprochée' : '')));
     else if (ctx.monthCmp < 0 || (ctx.monthCmp === 0 && day && day < ctx.today.getDate())) k.appendChild(el('span', 'tag check', 'paiement pas trouvé'));
-    else k.appendChild(el('span', 'tag acc', 'à venir'));
+    else k.appendChild(el('span', 'tag soon', 'à venir'));
     if (c.verif && !paid.length) { var bv = el('button', 'tag check act', 'à vérifier · ✓ ?'); bv.type = 'button'; bv.title = 'Marquer comme vérifiée'; bv.addEventListener('click', function (e) { e.stopPropagation(); actVerif('charges', c.id, c.libelle || c.id); }); k.appendChild(bv); }
     if (!paid.length && ctx.monthCmp >= 0 && c.id) { var bp = el('button', 'tag ok act', '✓ payée'); bp.type = 'button'; bp.title = 'Le prélèvement est passé : créer le mouvement'; bp.addEventListener('click', function (e) { e.stopPropagation(); actPayee(c); }); k.appendChild(bp); }
     li.appendChild(k);
@@ -1356,7 +1359,7 @@ button.tag.act:hover{filter:brightness(1.08)} button.tag.act:active{transform:tr
     var nat = m.nature;
     if (opts.internal) { var from = accId(m.compte) || mainAcc(), to = accId(m.vers) || (m.nature === 'epargne' ? 'livret' : null); k.appendChild(el('span', 'tag', accLabel(from) + ' → ' + (to ? accLabel(to) : '?'))); }
     if (nat === 'autre' && catOf(m) !== 'liquide') k.appendChild(el('span', 'tag', 'c’est quoi ?'));
-    if ((m.statut || '') === 'prevu') k.appendChild(el('span', 'tag ' + (opts.stale ? 'check' : 'acc'), opts.stale ? (isIn ? 'prévu, pas encore reçu' : 'prévu, paiement pas trouvé') : 'prévu'));
+    if ((m.statut || '') === 'prevu') k.appendChild(el('span', 'tag soon', 'prévu'));
     if (isCashDate(m)) k.appendChild(el('span', 'tag', '💵 liquide, non déclaré'));
     if (m.verif) { var bv = el('button', 'tag check act', 'à vérifier · ✓ ?'); bv.type = 'button'; bv.title = 'Marquer comme vérifié'; bv.addEventListener('click', function (e) { e.stopPropagation(); actVerif('movements', m.id, m.libelle || m.categorie); }); k.appendChild(bv); }
     if (opts.canReceive && (m.statut || '') === 'prevu' && m.id) { var br = el('button', 'tag ok act', '✓ reçu'); br.type = 'button'; br.title = 'L’argent est arrivé : passer en encaissé'; br.addEventListener('click', function (e) { e.stopPropagation(); actRecu(m); }); k.appendChild(br); }
