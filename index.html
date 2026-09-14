@@ -603,8 +603,9 @@ button.tag.act:hover{filter:brightness(1.08)} button.tag.act:active{transform:tr
       if (!sec) throw new Error('coffre illisible');
       var entries = (sec[field] || []).filter(function (l) { return l.trim(); }).map(function (l) { var o = null; try { o = JSON.parse(l); } catch (e) {} return { raw: l, obj: (o && typeof o === 'object') ? o : null }; });
       var objs = entries.filter(function (e) { return e.obj; }).map(function (e) { return e.obj; });
-      var added = mutate(objs) || []; // mutate modifie les objets en place et renvoie les nouveaux objets à ajouter
-      var content = entries.map(function (e) { return e.obj ? JSON.stringify(e.obj) : e.raw; }).concat(added.map(function (o) { return JSON.stringify(o); })).join('\n');
+      var rawKept = entries.filter(function (e) { return !e.obj; }).map(function (e) { return e.raw; }); // lignes illisibles : conservées telles quelles
+      var added = mutate(objs) || []; // mutate modifie les objets en place (ou en retire), et renvoie les nouveaux objets à ajouter
+      var content = objs.concat(added).map(function (o) { return JSON.stringify(o); }).concat(rawKept).join('\n');
       var body = new URLSearchParams();
       body.append('k', key); body.append('field', field); body.append('content', content);
       body.append('logline', JSON.stringify({ t: nowIso(), msg: 'Depuis la page : ' + msg }));
