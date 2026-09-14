@@ -285,6 +285,12 @@ details.moves{background:var(--surface);border:1px solid var(--line);border-radi
 details.moves summary{color:var(--muted)} details.moves .note{margin:4px 0 6px}
 .strip.sum .item .val.good{color:var(--good)} .strip.sum .item .val.bad{color:var(--bad)}
 .rows.colored li.later{opacity:.85;outline:2px dashed rgba(255,255,255,.55);outline-offset:-2px}
+button.tag.act{cursor:pointer;font-family:inherit;line-height:1.3;box-shadow:none}
+button.tag.act:hover{filter:brightness(1.08)} button.tag.act:active{transform:translateY(1px)}
+.acc button.edit{background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.5);color:#fff;border-radius:6px;font:inherit;font-size:11px;padding:1px 6px;cursor:pointer;box-shadow:none}
+.acc button.edit:hover{background:rgba(255,255,255,.3)}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--text);color:var(--surface);padding:10px 16px;border-radius:10px;font-size:13.5px;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,.25);z-index:60;max-width:min(92vw,520px);text-align:center}
+.toast.bad{background:var(--bad);color:#fff}
 .foot{font-size:12px; color:var(--faint); line-height:1.5}
 @media (prefers-reduced-motion: reduce){ *{transition:none !important} }
 </style>
@@ -409,6 +415,7 @@ details.moves summary{color:var(--muted)} details.moves .note{margin:4px 0 6px}
     </div>
   </div>
 
+  <div class="toast" id="toast" hidden></div>
   <p class="foot" id="foot">Tout ce qui est chiffré ici vient du coffre, rempli par ton Claude au fil de ce que tu lui dis. Les cases marquées <span class="tag check">à vérifier</span> sont des montants réels dont la nature ou l'exactitude n'est pas confirmée. Aucun montant n'est inventé : une case vide veut dire « je ne l'ai pas ».</p>
 </div>
 
@@ -416,6 +423,7 @@ details.moves summary{color:var(--muted)} details.moves .note{margin:4px 0 6px}
 (function () {
   'use strict';
   var READ_URL = 'https://hook.eu1.make.com/ksyrbnbjc53skqrc5ko0dlwonemj3an5';
+  var WRITE_URL = 'https://hook.eu1.make.com/3y4zun1dxgmdd7fxucg86424l5dt5prs'; // écriture depuis la page (vérifié, reçu, payée, solde)
   var SALT = 'comptes-sibylle:';
   var KEY_STORE = 'comptes-sibylle-key';
   var HOURS_TARGET = 507;
@@ -533,12 +541,12 @@ details.moves summary{color:var(--muted)} details.moves .note{margin:4px 0 6px}
 
   // ---------- data ----------
   var state = null; // { movements:[], charges:[], params:{}, questions:[], updated:'', log:[] }
-  function load(k) {
-    $('when').textContent = 'chargement…'; $('when').className = 'when';
+  // Lit le coffre brut : { movements:[lignes], charges:[lignes], params:[lignes], updated:[..], log:[..] } ou null si la clé est mauvaise
+  function readRaw(k) {
     return fetch(READ_URL + '?k=' + encodeURIComponent(k) + '&t=' + Date.now(), { cache: 'no-store' })
       .then(function (r) { return r.text(); })
       .then(function (txt) {
-        if (txt.indexOf('###movements') !== 0) return false;
+        if (txt.indexOf('###movements') !== 0) return null;
         var sec = {}; var cur = null;
         txt.split(/\r?\n/).forEach(function (line) {
           var m = /^###(\w+)$/.exec(line);
@@ -546,7 +554,15 @@ details.moves summary{color:var(--muted)} details.moves .note{margin:4px 0 6px}
           if (cur) sec[cur].push(line);
         });
         // Une mauvaise clé renvoie des sections vides : ce n'est pas un coffre.
-        if (!(sec.updated || []).join('').trim() && !(sec.params || []).join('').trim()) return false;
+        if (!(sec.updated || []).join('').trim() && !(sec.params || []).join('').trim()) return null;
+        return sec;
+      });
+  }
+  function load(k) {
+    $('when').textContent = 'chargement…'; $('when').className = 'when';
+    return readRaw(k)
+      .then(function (sec) {
+        if (!sec) return false;
         var params = {}, questions = [];
         parseND((sec.params || []).join('\n')).forEach(function (p) {
           if (!p.k) return;
@@ -569,6 +585,78 @@ details.moves summary{color:var(--muted)} details.moves .note{margin:4px 0 6px}
         $('when').textContent = '⚠️ coffre injoignable — affichage de la dernière version'; $('when').className = 'when err';
         return state ? true : false;
       });
+  }
+  // ---------- écriture depuis la page ----------
+  // Chaque action relit le coffre, modifie UN champ (movements | charges | params) et le renvoie entier au scénario d’écriture.
+  var busy = false;
+  function toast(msg, bad) { var t = $('toast'); t.textContent = msg; t.className = 'toast' + (bad ? ' bad' : ''); t.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(function () { t.hidden = true; }, bad ? 6000 : 3000); }
+  function pad2(n) { return (n < 10 ? '0' : '') + n; }
+  function ymd(d) { return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); }
+  function nowLocal() { var d = new Date(); return ymd(d) + 'T' + pad2(d.getHours()) + ':' + pad2(d.getMinutes()); }
+  function nowIso() { var d = new Date(), off = -d.getTimezoneOffset(), sg = off >= 0 ? '+' : '-'; off = Math.abs(off); return nowLocal() + ':' + pad2(d.getSeconds()) + sg + pad2(Math.floor(off / 60)) + ':' + pad2(off % 60); }
+  function genId() { var d = new Date(); return String(d.getFullYear()).slice(2) + pad2(d.getMonth() + 1) + pad2(d.getDate()) + pad2(d.getHours()) + pad2(d.getMinutes()) + pad2(d.getSeconds()) + String(d.getMilliseconds() + 1000).slice(1); }
+  function writeCoffre(field, mutate, msg) {
+    if (busy) { toast('Une action est déjà en cours, patiente une seconde.', true); return Promise.resolve(false); }
+    if (!key) return Promise.resolve(false);
+    busy = true; toast('Enregistrement…');
+    return readRaw(key).then(function (sec) {
+      if (!sec) throw new Error('coffre illisible');
+      var entries = (sec[field] || []).filter(function (l) { return l.trim(); }).map(function (l) { var o = null; try { o = JSON.parse(l); } catch (e) {} return { raw: l, obj: (o && typeof o === 'object') ? o : null }; });
+      var objs = entries.filter(function (e) { return e.obj; }).map(function (e) { return e.obj; });
+      var added = mutate(objs) || []; // mutate modifie les objets en place et renvoie les nouveaux objets à ajouter
+      var content = entries.map(function (e) { return e.obj ? JSON.stringify(e.obj) : e.raw; }).concat(added.map(function (o) { return JSON.stringify(o); })).join('\n');
+      var body = new URLSearchParams();
+      body.append('k', key); body.append('field', field); body.append('content', content);
+      body.append('logline', JSON.stringify({ t: nowIso(), msg: 'Depuis la page : ' + msg }));
+      return fetch(WRITE_URL, { method: 'POST', body: body });
+    }).then(function (r) { return r.text(); }).then(function (t) {
+      if (t.trim() !== 'ok') throw new Error(t.trim() || 'pas de réponse');
+      busy = false; toast('✓ ' + msg);
+      return load(key);
+    }).catch(function (e) {
+      busy = false; toast('Échec de l’enregistrement (' + (e && e.message ? e.message : 'réseau') + '). Rien n’a été modifié ; réessaie ou dis-le à ton Claude.', true);
+      return false;
+    });
+  }
+  function actVerif(field, id, label) {
+    if (!confirm('Marquer « ' + label + ' » comme vérifié ?')) return;
+    writeCoffre(field, function (objs) { objs.forEach(function (o) { if (o.id === id) o.verif = false; }); }, 'vérifié : ' + label);
+  }
+  function askAmount(question, def) {
+    var v = prompt(question, def == null ? '' : String(def).replace('.', ','));
+    if (v == null) return null;
+    var n = parseFloat(String(v).replace(/\s|€/g, '').replace(',', '.'));
+    if (!isFinite(n)) { toast('Montant illisible : ' + v, true); return null; }
+    return Math.round(n * 100) / 100;
+  }
+  function actRecu(m) {
+    var n = askAmount('Montant reçu pour « ' + (m.libelle || m.categorie) + ' » ? (prévu : ' + eur(m._amt) + ')', m._amt);
+    if (n == null) return;
+    var today = ymd(new Date()), gig = m.date;
+    writeCoffre('movements', function (objs) {
+      objs.forEach(function (o) {
+        if (o.id !== m.id) return;
+        o.statut = 'encaisse'; o.montant = n; o.date = today; o.verif = false;
+        if (gig && gig !== today && !/prestation du/i.test(String(o.note || ''))) o.note = ('prestation du ' + gig.split('-').reverse().join('/') + (o.note ? ' ; ' + o.note : ''));
+      });
+    }, 'reçu : ' + (m.libelle || m.categorie) + ' ' + eur(n));
+  }
+  function actPayee(c) {
+    var n = askAmount('Montant payé pour « ' + (c.libelle || c.id) + ' » ?', num(c.montant));
+    if (n == null) return;
+    var today = new Date();
+    writeCoffre('movements', function (objs) {
+      return [{ id: genId(), date: ymd(today), montant: n, sens: 'sortie', libelle: c.libelle || c.id, nature: 'charge', categorie: c.categorie || 'divers', statut: 'encaisse', compte: 'cmb_bretagne', vers: '', charge_id: c.id, verif: false, note: 'Marquée payée sur la page', cree: nowLocal() }];
+    }, 'payée : ' + (c.libelle || c.id) + ' ' + eur(n));
+  }
+  function actSolde(a) {
+    var n = askAmount('Solde de ' + a.l + ' en ce moment ? (ex. 312,50 ou -48,73)', null);
+    if (n == null) return;
+    writeCoffre('params', function (objs) {
+      var kept = [], removed = 0;
+      for (var i = objs.length - 1; i >= 0; i--) { var k = String(objs[i].k || ''); if (/^solde_/i.test(k) && accId(k.replace(/^solde_/i, '')) === a.id) { objs.splice(i, 1); removed++; } }
+      return [{ k: 'solde_' + a.id, v: String(n), date: nowLocal(), verif: false, note: 'Saisi sur la page' }];
+    }, 'solde ' + a.l + ' = ' + eur(n));
   }
   var pollTimer = null;
   function startPolling() { clearInterval(pollTimer); pollTimer = setInterval(function () { if (document.visibilityState === 'visible' && key) load(key); }, 60000); }
@@ -749,7 +837,7 @@ details.moves summary{color:var(--muted)} details.moves .note{margin:4px 0 6px}
     // dans le mois en cours, un prévu plus ancien pas encore arrivé reste attendu (il compte dans le solde estimé)
     var inWin = function (m) { return monthCmp === 0 ? m._d <= mEnd : inRange(m._d, mStart, mEnd); };
     var prevIn = mv.filter(function (m) { return m.sens === 'entree' && !enc(m) && !isInternal(m) && inWin(m); }).sort(function (a, b) { return a._d - b._d; });
-    prevIn.forEach(function (m) { expRows.appendChild(rowFor(m, true, { stale: monthCmp < 0 || m._d < today })); expTot += m._amt; });
+    prevIn.forEach(function (m) { expRows.appendChild(rowFor(m, true, { stale: monthCmp < 0 || m._d < today, canReceive: true })); expTot += m._amt; });
     if (!expRows.children.length) expRows.appendChild(el('li', 'empty', monthCmp < 0 ? 'Rien n’était enregistré comme attendu.' : 'Rien d’attendu enregistré. Dis à ton Claude tes dates (« date le 18, 250 € », « 150 € en liquide le 25 ») : elles apparaîtront ici, puis monteront dans « Rentré » une fois payées.'));
     $('exp-total-lab').textContent = monthCmp < 0 ? 'Était attendu en ' + MONTHS[mo] : 'Attendu ' + (monthCmp === 0 ? 'd’ici la fin ' + deM : 'en ' + MONTHS[mo]);
     $('exp-total').textContent = eur(expTot);
@@ -942,17 +1030,18 @@ details.moves summary{color:var(--muted)} details.moves .note{margin:4px 0 6px}
       var children = ACCOUNTS.filter(function (c) { return c.parent === a.id; });
       var mid = el('div'); mid.appendChild(el('b', null, a.l + (children.length ? ' · compte courant' : '')));
       var est = null;
-      if (!an) { mid.appendChild(el('small', null, 'solde inconnu')); acc.appendChild(mid); acc.appendChild(el('span', 'amt q', '?')); missing.push(a.l); }
+      var editBtn = function (a) { var b = el('button', 'edit', '✎ solde'); b.type = 'button'; b.title = 'Saisir le solde actuel de ' + a.l; b.addEventListener('click', function () { actSolde(a); }); return b; };
+      if (!an) { var sm0 = el('small', null, 'solde inconnu · '); sm0.appendChild(editBtn(a)); mid.appendChild(sm0); acc.appendChild(mid); acc.appendChild(el('span', 'amt q', '?')); missing.push(a.l); }
       else {
         est = balanceAt(a.id, today, false);
-        mid.appendChild(el('small', null, an.d ? 'solde du ' + fmtShort(an.d) + (Math.abs(est - an.v) > 0.001 ? ', mouvements depuis inclus' : '') : 'date du solde inconnue'));
+        var sm = el('small', null, (an.d ? 'solde du ' + fmtShort(an.d) + (Math.abs(est - an.v) > 0.001 ? ', mouvements depuis inclus' : '') : 'date du solde inconnue') + ' · '); sm.appendChild(editBtn(a)); mid.appendChild(sm);
         acc.appendChild(mid); acc.appendChild(el('span', 'amt' + (est < 0 ? ' no' : ''), eur(est)));
         total += est; known++;
       }
       var cardTotal = est, cardComplete = est != null;
       children.forEach(function (c) {
         var anc = anchorOf(c.id), sub = el('div', 'sub');
-        sub.appendChild(el('span', null, c.e + ' ' + c.l));
+        var lab = el('span', null, c.e + ' ' + c.l + ' · '); lab.appendChild(editBtn(c)); sub.appendChild(lab);
         if (!anc) { sub.appendChild(el('span', 'q', 'solde inconnu')); cardComplete = false; }
         else { var ec = balanceAt(c.id, today, false); sub.appendChild(el('span', 'amt', eur(ec))); total += ec; cardTotal = (cardTotal || 0) + ec; }
         acc.appendChild(sub);
@@ -1131,7 +1220,8 @@ details.moves summary{color:var(--muted)} details.moves .note{margin:4px 0 6px}
     if (paid.length) k.appendChild(el('span', 'tag ok', '✓ payée le ' + paid[0]._d.getDate() + (paid.some(function (m) { return !m.charge_id; }) ? ' · rapprochée' : '')));
     else if (ctx.monthCmp < 0 || (ctx.monthCmp === 0 && day && day < ctx.today.getDate())) k.appendChild(el('span', 'tag check', 'paiement pas trouvé'));
     else k.appendChild(el('span', 'tag acc', 'à venir'));
-    if (c.verif && !paid.length) k.appendChild(el('span', 'tag check', 'à vérifier'));
+    if (c.verif && !paid.length) { var bv = el('button', 'tag check act', 'à vérifier · ✓ ?'); bv.type = 'button'; bv.title = 'Marquer comme vérifiée'; bv.addEventListener('click', function (e) { e.stopPropagation(); actVerif('charges', c.id, c.libelle || c.id); }); k.appendChild(bv); }
+    if (!paid.length && ctx.monthCmp >= 0 && c.id) { var bp = el('button', 'tag ok act', '✓ payée'); bp.type = 'button'; bp.title = 'Le prélèvement est passé : créer le mouvement'; bp.addEventListener('click', function (e) { e.stopPropagation(); actPayee(c); }); k.appendChild(bp); }
     li.appendChild(k);
     li.appendChild(el('span', 'v' + (paid.length ? ' ok' : (amt == null ? ' q' : '')), paid.length ? eur(paidAmt) : (amt == null ? 'montant ?' : eur(amt))));
     return li;
@@ -1267,7 +1357,8 @@ details.moves summary{color:var(--muted)} details.moves .note{margin:4px 0 6px}
     if (nat === 'autre' && catOf(m) !== 'liquide') k.appendChild(el('span', 'tag', 'c’est quoi ?'));
     if ((m.statut || '') === 'prevu') k.appendChild(el('span', 'tag ' + (opts.stale ? 'check' : 'acc'), opts.stale ? (isIn ? 'prévu, pas encore reçu' : 'prévu, paiement pas trouvé') : 'prévu'));
     if (isCashDate(m)) k.appendChild(el('span', 'tag', '💵 liquide, non déclaré'));
-    if (m.verif) k.appendChild(el('span', 'tag check', 'à vérifier'));
+    if (m.verif) { var bv = el('button', 'tag check act', 'à vérifier · ✓ ?'); bv.type = 'button'; bv.title = 'Marquer comme vérifié'; bv.addEventListener('click', function (e) { e.stopPropagation(); actVerif('movements', m.id, m.libelle || m.categorie); }); k.appendChild(bv); }
+    if (opts.canReceive && (m.statut || '') === 'prevu' && m.id) { var br = el('button', 'tag ok act', '✓ reçu'); br.type = 'button'; br.title = 'L’argent est arrivé : passer en encaissé'; br.addEventListener('click', function (e) { e.stopPropagation(); actRecu(m); }); k.appendChild(br); }
     li.appendChild(k);
     var cls = 'v' + (isIn ? (nat === 'revenu' && (m.statut || '') !== 'prevu' ? ' ok' : ' q') : ' no');
     li.appendChild(el('span', cls, (opts.internal ? '' : (isIn ? '+ ' : '− ')) + eur(m._amt)));
