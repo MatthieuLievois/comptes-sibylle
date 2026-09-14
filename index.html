@@ -745,7 +745,9 @@ details.moves summary{color:var(--muted)} details.moves .note{margin:4px 0 6px}
       }
     }
     // c) les rentrées prévues datées dans le mois (dates signées, remboursements ou aides annoncés)
-    var prevIn = monthMv.filter(function (m) { return m.sens === 'entree' && !enc(m) && !isInternal(m); }).sort(function (a, b) { return a._d - b._d; });
+    // dans le mois en cours, un prévu plus ancien pas encore arrivé reste attendu (il compte dans le solde estimé)
+    var inWin = function (m) { return monthCmp === 0 ? m._d <= mEnd : inRange(m._d, mStart, mEnd); };
+    var prevIn = mv.filter(function (m) { return m.sens === 'entree' && !enc(m) && !isInternal(m) && inWin(m); }).sort(function (a, b) { return a._d - b._d; });
     prevIn.forEach(function (m) { expRows.appendChild(rowFor(m, true, { stale: monthCmp < 0 || m._d < today })); expTot += m._amt; });
     if (!expRows.children.length) expRows.appendChild(el('li', 'empty', monthCmp < 0 ? 'Rien n’était enregistré comme attendu.' : 'Rien d’attendu enregistré. Dis à ton Claude tes dates (« date le 18, 250 € », « 150 € en liquide le 25 ») : elles apparaîtront ici, puis monteront dans « Rentré » une fois payées.'));
     $('exp-total-lab').textContent = monthCmp < 0 ? 'Était attendu en ' + MONTHS[mo] : 'Attendu ' + (monthCmp === 0 ? 'd’ici la fin ' + deM : 'en ' + MONTHS[mo]);
@@ -760,7 +762,7 @@ details.moves summary{color:var(--muted)} details.moves .note{margin:4px 0 6px}
       var day = chargeDue(c, y, mo) || daysInMonth, d = new Date(y, mo, Math.min(day, daysInMonth));
       if (d <= today) { lateTotal += amt; lateN++; } else leftTotal += amt;
     });
-    var prevOut = monthMv.filter(function (m) { return m.sens === 'sortie' && !enc(m) && !isInternal(m); });
+    var prevOut = mv.filter(function (m) { return m.sens === 'sortie' && !enc(m) && !isInternal(m) && inWin(m); });
     leftTotal += sumBy(prevOut);
     fixCtx = { chargesMonth: chargesMonth, prevOut: prevOut, monthMv: monthMv, y: y, mo: mo, monthCmp: monthCmp, today: today };
     renderFixList();
@@ -777,7 +779,7 @@ details.moves summary{color:var(--muted)} details.moves .note{margin:4px 0 6px}
     $('sum-in-lab').textContent = monthCmp < 0 ? 'Était attendu' : 'Doit rentrer'; $('sum-out-lab').textContent = monthCmp < 0 ? 'Sans paiement trouvé' : 'Doit sortir';
     $('sum-end-lab').textContent = (monthCmp < 0 ? 'Solde fin ' : 'Solde estimé fin ') + MONTHS[mo];
     var endEl = $('sum-end'); endEl.textContent = gEnd.known ? eur(gEnd.v) : '—'; endEl.className = 'val num ' + (gEnd.known ? (gEnd.v < 0 ? 'bad' : 'good') : '');
-    $('sum-note').textContent = monthCmp < 0 ? 'Pour un mois passé : solde reconstitué à la fin du mois d’après les soldes donnés et les mouvements.' : ('Solde estimé = tes poches aujourd’hui + ce qui doit rentrer − ce qui doit sortir, jour par jour jusqu’au ' + mEnd.getDate() + ' ' + MONTHS[mo] + '. C’est la ligne du graphique « Vue d’ensemble ».' + (gNow.missing.length ? ' Poches sans solde connu, non comptées : ' + gNow.missing.join(', ') + '.' : ''));
+    $('sum-note').textContent = monthCmp < 0 ? 'Pour un mois passé : solde reconstitué à la fin du mois d’après les soldes donnés et les mouvements.' : ('Solde estimé = tes poches aujourd’hui + ce qui doit rentrer − ce qui doit sortir, jour par jour jusqu’au ' + mEnd.getDate() + ' ' + MONTHS[mo] + '. Le graphique « Vue d’ensemble » part de ce chiffre pour le mois suivant.' + (gNow.missing.length ? ' Poches sans solde connu, non comptées : ' + gNow.missing.join(', ') + '.' : ''));
 
     // ---- questions ----
     var askEl = $('ask'), askList = $('ask-list'); askList.innerHTML = '';
@@ -883,15 +885,17 @@ details.moves summary{color:var(--muted)} details.moves .note{margin:4px 0 6px}
     var main = mainAcc();
     mv.forEach(function (m) {
       var prevu = (m.statut || 'encaisse') === 'prevu';
+      // un prévu dont la date est déjà passée (date de la prestation, paiement pas encore arrivé) est attendu d’un jour à l’autre
+      var d = prevu && m._d <= today ? addDays(today, 1) : m._d;
       var from = accId(m.compte) || main;
       if (isInternal(m)) {
         var to = accId(m.vers) || (m.nature === 'epargne' ? 'livret' : null);
         var cat = to === 'liquide' || from === 'liquide' ? 'liquide' : (m.nature === 'epargne' || to === 'livret' ? 'epargne' : 'vir');
-        FLOWS.push({ d: m._d, v: m._amt, sens: 'sortie', cat: cat, acc: from, hatch: prevu, internal: true, other: to });
-        if (to) FLOWS.push({ d: m._d, v: m._amt, sens: 'entree', cat: cat, acc: to, hatch: prevu, internal: true, other: from });
+        FLOWS.push({ d: d, v: m._amt, sens: 'sortie', cat: cat, acc: from, hatch: prevu, internal: true, other: to });
+        if (to) FLOWS.push({ d: d, v: m._amt, sens: 'entree', cat: cat, acc: to, hatch: prevu, internal: true, other: from });
         return;
       }
-      FLOWS.push({ d: m._d, v: m._amt, sens: m.sens, cat: catOf(m), acc: from, hatch: prevu, internal: false, cash: isCashDate(m) });
+      FLOWS.push({ d: d, v: m._amt, sens: m.sens, cat: catOf(m), acc: from, hatch: prevu, internal: false, cash: isCashDate(m) });
     });
     // charges fixes à venir (non payées), projetées sur 15 mois depuis le compte principal
     var y0 = today.getFullYear(), m0 = today.getMonth();
