@@ -275,6 +275,13 @@ details.det{font-size:13px} details.det summary{cursor:pointer;color:var(--accen
 .rows.colored .pi{background:#fff;border-color:#fff;text-shadow:none}
 .rows.colored li.grp{cursor:pointer;padding:8px 10px 8px 6px;margin-top:6px;font-size:14px}
 .rows.colored li.grp.static{cursor:default}
+details.debts{margin-top:4px;border-top:1px dashed var(--line-strong);padding-top:8px}
+details.debts summary{color:var(--muted)} details.debts .note{margin:4px 0 6px}
+.debts .rows li .k b{font-weight:600} .debts .rows li .acts{display:flex;gap:6px;align-items:center}
+.debts .rows li .v{color:var(--bad)}
+button.mini{border:1px solid var(--line-strong);background:var(--surface);color:var(--accent);border-radius:8px;font:inherit;font-size:12.5px;font-weight:600;padding:5px 10px;cursor:pointer;box-shadow:none;margin-top:6px}
+button.mini:hover{background:var(--surface-2)}
+.debts .rows button.tag{cursor:pointer;font-family:inherit}
 .rows.colored li.grp .k b{font-weight:700} .rows.colored li.grp .cnt{font-size:11.5px;color:rgba(255,255,255,.85);font-weight:500}
 .rows.colored li.grp .chev{margin-left:auto;margin-right:8px;opacity:.85;font-size:12px}
 .rows.colored li.item{margin-left:14px;background:color-mix(in srgb, var(--c) 78%, #fff)}
@@ -330,6 +337,12 @@ button.tag.act:hover{filter:brightness(1.08)} button.tag.act:active{transform:tr
     <div class="row1"><span class="big num idle" id="solde-big">—</span><span class="delta idle" id="solde-delta">—</span></div>
     <div class="accounts" id="accounts"></div>
     <p class="note" id="solde-note"></p>
+    <details class="det debts" id="debts">
+      <summary id="debts-sum">🤝 Ce que je dois</summary>
+      <p class="note">Ce que tu dois à des personnes, sans date de remboursement. Ce n’est pas compris dans le total ni dans les prévisions : c’est là pour ne pas l’oublier.</p>
+      <ul class="rows" id="debt-rows"></ul>
+      <button type="button" class="mini" id="debt-add">+ ajouter une dette</button>
+    </details>
   </div>
 
   <!-- VUE D’ENSEMBLE : graphique par période -->
@@ -775,6 +788,7 @@ button.tag.act:hover{filter:brightness(1.08)} button.tag.act:active{transform:tr
     // ---- alerte : calendrier de trésorerie ----
     buildFlows(today, mv, s.charges);
     renderSolde(today, monthMv, monthOffset === 0 ? 'ce mois-ci' : 'en ' + MONTHS[mo]);
+    renderDebts();
     renderChart(today);
 
     // ---- étage 1 : ce qui s’est effectivement passé (encaissé, hors déplacements entre poches) ----
@@ -1049,6 +1063,49 @@ button.tag.act:hover{filter:brightness(1.08)} button.tag.act:active{transform:tr
     return bal;
   }
 
+  // ---------- dettes (paramètres dette_<nom>) : hors total, hors prévisions, sans date ----------
+  function debtList() {
+    return Object.keys(state.params).filter(function (k) { return /^dette_/i.test(k); }).map(function (k) {
+      var p = state.params[k], v = P(k);
+      return { k: k, name: (p.note && String(p.note).trim()) || k.replace(/^dette_/i, '').replace(/_/g, ' '), v: v == null ? 0 : v, date: p.date || '' };
+    }).sort(function (a, b) { return b.v - a.v; });
+  }
+  function renderDebts() {
+    var list = debtList(), box = $('debt-rows'); box.innerHTML = '';
+    var tot = list.reduce(function (n, d) { return n + d.v; }, 0);
+    $('debts-sum').textContent = list.length ? '🤝 Ce que je dois · ' + list.length + (list.length > 1 ? ' personnes' : ' personne') + ' · ' + eur(tot) + ' (hors total)' : '🤝 Ce que je dois · rien de noté';
+    if (!list.length) { box.appendChild(el('li', 'empty', 'Aucune dette notée. « + ajouter une dette » ici, ou dis-le à ton Claude (« je dois 300 € à Anne »).')); return; }
+    list.forEach(function (d) {
+      var li = el('li'); var k = el('span', 'k'); k.appendChild(el('b', null, d.name));
+      if (d.date) k.appendChild(el('span', 'd', 'noté le ' + (parseDate(d.date) ? fmtShort(parseDate(d.date)) : d.date)));
+      var acts = el('span', 'acts');
+      var be = el('button', 'tag', '✎ montant'); be.type = 'button'; be.addEventListener('click', function () { actDebtEdit(d); }); acts.appendChild(be);
+      var bd = el('button', 'tag ok', '✓ réglée'); bd.type = 'button'; bd.addEventListener('click', function () { actDebtDone(d); }); acts.appendChild(bd);
+      k.appendChild(acts); li.appendChild(k);
+      li.appendChild(el('span', 'v', '− ' + eur(d.v)));
+      box.appendChild(li);
+    });
+  }
+  function debtKey(name) { var slug = String(name).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, ''); return 'dette_' + (slug || 'x'); }
+  function actDebtAdd() {
+    var name = prompt('À qui dois-tu de l’argent ? (un nom)'); if (!name || !name.trim()) return; name = name.trim();
+    var n = askAmount('Combien dois-tu à ' + name + ' ?', null); if (n == null) return;
+    var k = debtKey(name);
+    writeCoffre('params', function (objs) {
+      for (var i = objs.length - 1; i >= 0; i--) if (String(objs[i].k || '').toLowerCase() === k) objs.splice(i, 1);
+      return [{ k: k, v: String(n), date: ymd(new Date()), verif: false, note: name }];
+    }, 'dette notée : ' + name + ' ' + eur(n));
+  }
+  function actDebtEdit(d) {
+    var n = askAmount('Nouveau montant dû à ' + d.name + ' ? (actuel : ' + eur(d.v) + ')', d.v); if (n == null) return;
+    if (n <= 0) return actDebtDone(d);
+    writeCoffre('params', function (objs) { objs.forEach(function (o) { if (String(o.k || '').toLowerCase() === d.k.toLowerCase()) { o.v = String(n); o.date = ymd(new Date()); } }); }, 'dette ' + d.name + ' = ' + eur(n));
+  }
+  function actDebtDone(d) {
+    if (!confirm('Dette envers ' + d.name + ' (' + eur(d.v) + ') réglée ? Elle disparaît de la liste.')) return;
+    writeCoffre('params', function (objs) { for (var i = objs.length - 1; i >= 0; i--) if (String(objs[i].k || '').toLowerCase() === d.k.toLowerCase()) objs.splice(i, 1); }, 'dette réglée : ' + d.name);
+  }
+  $('debt-add').addEventListener('click', actDebtAdd);
   function renderSolde(today, monthMv, whenLabel) {
     var accEl = $('accounts'); accEl.innerHTML = '';
     var total = 0, missing = [], known = 0;
