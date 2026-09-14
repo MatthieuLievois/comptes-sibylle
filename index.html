@@ -1260,7 +1260,7 @@ details.moves summary{color:var(--muted)} details.moves .note{margin:4px 0 6px}
     var nat = m.nature;
     if (opts.internal) { var from = accId(m.compte) || mainAcc(), to = accId(m.vers) || (m.nature === 'epargne' ? 'livret' : null); k.appendChild(el('span', 'tag', accLabel(from) + ' → ' + (to ? accLabel(to) : '?'))); }
     if (nat === 'autre') k.appendChild(el('span', 'tag', 'c’est quoi ?'));
-    if ((m.statut || '') === 'prevu') k.appendChild(el('span', 'tag ' + (opts.stale ? 'check' : 'acc'), opts.stale ? 'prévu, paiement pas trouvé' : 'prévu'));
+    if ((m.statut || '') === 'prevu') k.appendChild(el('span', 'tag ' + (opts.stale ? 'check' : 'acc'), opts.stale ? (isIn ? 'prévu, pas encore reçu' : 'prévu, paiement pas trouvé') : 'prévu'));
     if (isCashDate(m)) k.appendChild(el('span', 'tag', '💵 liquide, non déclaré'));
     if (m.verif) k.appendChild(el('span', 'tag check', 'à vérifier'));
     li.appendChild(k);
