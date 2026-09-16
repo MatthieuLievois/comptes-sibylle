@@ -89,6 +89,7 @@ button{font:inherit; cursor:pointer}
 .mnav button{border:1px solid var(--line);background:var(--surface);box-shadow:none;padding:4px 9px;border-radius:8px;font-size:12px;color:var(--muted)}
 .mnav button:disabled{opacity:.35;cursor:default}
 .mnav .chip{font-size:13px;padding:4px 11px}
+.stage-nav{margin:2px 0 -6px}
 .when{font-size:13px; color:var(--muted); font-variant-numeric:tabular-nums}
 .when.err{color:var(--bad); font-weight:600}
 
@@ -323,7 +324,7 @@ button.tag.act:hover{filter:brightness(1.08)} button.tag.act:active{transform:tr
 
   <div class="topbar">
     <h1>Mon enveloppe hebdo</h1>
-    <div class="mnav" role="group" aria-label="Mois affiché"><button type="button" id="m-prev" aria-label="Mois précédent">◀</button><span class="chip" id="m-label">—</span><button type="button" id="m-next" aria-label="Mois suivant">▶</button></div>
+    <div class="mnav" role="group" aria-label="Mois affiché"><button type="button" class="m-prev" aria-label="Mois précédent">◀</button><span class="chip m-label">—</span><button type="button" class="m-next" aria-label="Mois suivant">▶</button></div>
     <div class="right">
       <span class="when" id="when">…</span>
       <button class="btn ghost small" id="btn-refresh" type="button" title="Recharger">↻</button>
@@ -389,6 +390,7 @@ button.tag.act:hover{filter:brightness(1.08)} button.tag.act:active{transform:tr
 
   <!-- ÉTAGE 2 : ce qui est attendu -->
   <h2 class="stage" id="stage-next">⏳ Ce qui est attendu</h2>
+  <div class="stage-nav"><div class="mnav" role="group" aria-label="Mois affiché"><button type="button" class="m-prev" aria-label="Mois précédent">◀</button><span class="chip m-label">—</span><button type="button" class="m-next" aria-label="Mois suivant">▶</button></div></div>
   <div class="cols">
     <div class="card">
       <h2>📥 Ce qui doit rentrer</h2>
@@ -721,8 +723,9 @@ button.tag.act:hover{filter:brightness(1.08)} button.tag.act:active{transform:tr
     var weekNo = Math.floor((today.getDate() - 1 + ((mStart.getDay() + 6) % 7)) / 7) + 1;
     var prenom = PS('prenom');
 
-    $('m-label').textContent = MONTHS[mo].charAt(0).toUpperCase() + MONTHS[mo].slice(1) + ' ' + y + (monthOffset === 0 ? ' · ce mois-ci' : '');
-    $('m-next').disabled = monthOffset >= 1;
+    var mLabel = MONTHS[mo].charAt(0).toUpperCase() + MONTHS[mo].slice(1) + ' ' + y + (monthOffset === 0 ? ' · ce mois-ci' : '');
+    Array.prototype.forEach.call(document.querySelectorAll('.m-label'), function (e) { e.textContent = mLabel; });
+    Array.prototype.forEach.call(document.querySelectorAll('.m-next'), function (b) { b.disabled = monthOffset >= 1; });
     if (s.updated) { var u = new Date(s.updated); $('when').textContent = isNaN(u) ? 'mis à jour : ' + s.updated : 'mis à jour ' + fmtShort(u) + ' à ' + pad(u.getHours()) + ':' + pad(u.getMinutes()); }
     else $('when').textContent = 'coffre chargé';
     $('when').className = 'when';
@@ -1362,8 +1365,8 @@ button.tag.act:hover{filter:brightness(1.08)} button.tag.act:active{transform:tr
     });
   }
   var monthOffset = 0; // 0 = mois en cours ; −1 = mois précédent…
-  $('m-prev').addEventListener('click', function () { monthOffset--; if (state) render(); });
-  $('m-next').addEventListener('click', function () { if (monthOffset < 1) { monthOffset++; if (state) render(); } });
+  Array.prototype.forEach.call(document.querySelectorAll('.m-prev'), function (b) { b.addEventListener('click', function () { monthOffset--; if (state) render(); }); });
+  Array.prototype.forEach.call(document.querySelectorAll('.m-next'), function (b) { b.addEventListener('click', function () { if (monthOffset < 1) { monthOffset++; if (state) render(); } }); });
   var mvSort = 'date', mvCollapsed = {}, lastLists = {};
   try { var pv = localStorage.getItem('sib-mv-sort'); if (pv === 'date' || pv === 'cat') mvSort = pv; } catch (e) {}
   Array.prototype.forEach.call(document.querySelectorAll('#seg-in button, #seg-out button'), function (btn) {
