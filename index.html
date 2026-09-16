@@ -276,6 +276,14 @@ details.det{font-size:13px} details.det summary{cursor:pointer;color:var(--accen
 .rows.colored .pi{background:#fff;border-color:#fff;text-shadow:none}
 .rows.colored li.grp{cursor:pointer;padding:8px 10px 8px 6px;margin-top:6px;font-size:14px}
 .rows.colored li.grp.static{cursor:default}
+details.now{margin-top:6px;border-top:1px dashed var(--line-strong);padding-top:8px}
+details.now summary{display:flex;align-items:baseline;justify-content:space-between;gap:10px;color:var(--text);font-size:14px}
+details.now summary b{font-size:20px;letter-spacing:-.01em} details.now summary b.good{color:var(--good)} details.now summary b.bad{color:var(--bad)}
+table.calc{width:100%;border-collapse:collapse;margin:8px 0 6px;font-size:13px}
+table.calc td{padding:5px 0;border-bottom:1px solid var(--line);vertical-align:top}
+table.calc td:last-child{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums;font-weight:600;padding-left:12px}
+table.calc tr.tot td{border-bottom:0;border-top:2px solid var(--line-strong);font-weight:700;font-size:14px}
+table.calc td small{display:block;color:var(--faint);font-weight:400;font-size:11.5px}
 details.debts{margin-top:4px;border-top:1px dashed var(--line-strong);padding-top:8px}
 details.debts summary{color:var(--muted)} details.debts .note{margin:4px 0 6px}
 .debts .rows li .k b{font-weight:600} .debts .rows li .acts{display:flex;gap:6px;align-items:center}
@@ -338,6 +346,11 @@ button.tag.act:hover{filter:brightness(1.08)} button.tag.act:active{transform:tr
     <div class="row1"><span class="big num idle" id="solde-big">—</span><span class="delta idle" id="solde-delta">—</span></div>
     <div class="accounts" id="accounts"></div>
     <p class="note" id="solde-note"></p>
+    <details class="det now" id="now">
+      <summary><span id="now-lab">⚡ Si tout tombait maintenant</span><b class="num" id="now-val">—</b></summary>
+      <table class="calc" id="now-table"></table>
+      <p class="note" id="now-note"></p>
+    </details>
     <details class="det debts" id="debts">
       <summary id="debts-sum">🤝 Ce que je dois</summary>
       <p class="note">Ce que tu dois à des personnes, sans date de remboursement. Ce n’est pas compris dans le total ni dans les prévisions : c’est là pour ne pas l’oublier.</p>
@@ -791,6 +804,7 @@ button.tag.act:hover{filter:brightness(1.08)} button.tag.act:active{transform:tr
     // ---- alerte : calendrier de trésorerie ----
     buildFlows(today, mv, s.charges);
     renderSolde(today, monthMv, monthOffset === 0 ? 'ce mois-ci' : 'en ' + MONTHS[mo]);
+    renderNow(today, mv);
     renderDebts();
     renderChart(today);
 
@@ -1066,6 +1080,50 @@ button.tag.act:hover{filter:brightness(1.08)} button.tag.act:active{transform:tr
     return bal;
   }
 
+  // ---------- « si tout tombait maintenant » : toujours calculé sur le mois réel, quel que soit le mois affiché ----------
+  function renderNow(today, mv) {
+    var y = today.getFullYear(), mo = today.getMonth(), mStart = new Date(y, mo, 1), mEnd = new Date(y, mo + 1, 0), dim = mEnd.getDate();
+    var ny = new Date(y, mo + 1, 1).getFullYear(), nmo = new Date(y, mo + 1, 1).getMonth(), nStart = new Date(ny, nmo, 1), nEnd = new Date(ny, nmo + 1, 0), ndim = nEnd.getDate();
+    var enc = function (m) { return (m.statut || 'encaisse') !== 'prevu'; };
+    var g = globalBalance(today, false), now = g.known ? g.v : 0;
+    // dépenses prévues du mois prochain : charges fixes non payées + sorties prévues datées
+    var nextOut = 0, nextN = 0;
+    state.charges.forEach(function (c) { if (!chargeInMonth(c, nmo)) return; var a = num(c.montant); if (a == null || paymentsFor(c, mv, ny, nmo).length) return; nextOut += a; nextN++; });
+    var nextPrevOut = mv.filter(function (m) { return m.sens === 'sortie' && !enc(m) && !isInternal(m) && inRange(m._d, nStart, nEnd); });
+    nextOut += sumBy(nextPrevOut); nextN += nextPrevOut.length;
+    // rentrées prévues pour ce mois : prévus datés jusqu’à la fin du mois (hors dû) + France Travail estimé au titre de ce mois
+    var thisIn = mv.filter(function (m) { return m.sens === 'entree' && !enc(m) && !isInternal(m) && !isDue(m) && m._d <= mEnd; });
+    var thisInTot = sumBy(thisIn);
+    var ft = ftFor(y, mo, mv), ftAmt = 0, ftLab = '';
+    if (ft && !ft.real.length && ft.payDate > today) { ftAmt = ft.amt; ftLab = 'France Travail pour ' + MONTHS[mo] + ' (estimé, versé début ' + MONTHS[nmo] + ')'; }
+    else if (ft && ft.real.length && !enc(ft.real[0])) { ftAmt = ft.realAmt; ftLab = 'France Travail pour ' + MONTHS[mo] + ' (annoncé)'; }
+    // dû sans date
+    var due = mv.filter(function (m) { return m.sens === 'entree' && isDue(m); }), dueTot = sumBy(due);
+    var result = now - nextOut + thisInTot + ftAmt + dueTot;
+    // ce qui n’est pas compris
+    var leftThis = 0, lateThis = 0, lateN = 0;
+    state.charges.forEach(function (c) { if (!chargeInMonth(c, mo)) return; var a = num(c.montant); if (a == null || paymentsFor(c, mv, y, mo).length) return; var d = new Date(y, mo, Math.min(chargeDue(c, y, mo) || dim, dim)); if (d <= today) { lateThis += a; lateN++; } else leftThis += a; });
+    var nextIn = mv.filter(function (m) { return m.sens === 'entree' && !enc(m) && !isInternal(m) && !isDue(m) && inRange(m._d, nStart, nEnd); }), nextInTot = sumBy(nextIn);
+    var debts = debtList().reduce(function (n, d) { return n + d.v; }, 0);
+    var v = $('now-val'); v.textContent = signed(result); v.className = 'num ' + (result < 0 ? 'bad' : 'good');
+    var tb = $('now-table'); tb.innerHTML = '';
+    var row = function (lab, sub, val, cls) { var tr = el('tr', cls || null); var td = el('td', null, lab); if (sub) td.appendChild(el('small', null, sub)); tr.appendChild(td); tr.appendChild(el('td', null, val)); tb.appendChild(tr); };
+    row('Sur tes comptes aujourd’hui', g.missing.length ? 'sans ' + g.missing.join(', ') + ' (solde inconnu)' : 'les quatre poches, Livret compris', signed(now));
+    row('Dépenses prévues ' + (/^[aeiouy]/.test(MONTHS[nmo]) ? 'd’' : 'de ') + MONTHS[nmo], nextN + ' charge' + (nextN > 1 ? 's' : '') + ' fixe' + (nextN > 1 ? 's' : '') + (nextPrevOut.length ? ' et sortie' + (nextPrevOut.length > 1 ? 's' : '') + ' prévue' + (nextPrevOut.length > 1 ? 's' : '') : ''), '− ' + eur(nextOut));
+    row('Rentrées prévues pour ' + MONTHS[mo], (ftLab ? ftLab + (thisIn.length ? ' + ' : '') : '') + thisIn.map(function (m) { return (m.libelle || m.categorie) + ' ' + fmtShort(m._d); }).join(', ') || 'rien d’enregistré', '+ ' + eur(thisInTot + ftAmt));
+    row('Dû sans date de paiement', due.length ? due.length + ' cachet' + (due.length > 1 ? 's' : '') : 'aucun', '+ ' + eur(dueTot));
+    row('Il te resterait', null, signed(result), 'tot');
+    var notes = ['Calcul à l’instant, indépendant du mois affiché.'];
+    var out = [];
+    if (leftThis) out.push(eur(leftThis) + ' de charges ' + (/^[aeiouy]/.test(MONTHS[mo]) ? 'd’' : 'de ') + MONTHS[mo] + ' encore à venir');
+    if (lateThis) out.push(eur(lateThis) + ' de charges ' + (/^[aeiouy]/.test(MONTHS[mo]) ? 'd’' : 'de ') + MONTHS[mo] + ' à date dépassée sans paiement trouvé (si elles passent : ' + signed(result - lateThis - leftThis) + ')');
+    if (nextInTot) out.push(eur(nextInTot) + ' de rentrées prévues ' + (/^[aeiouy]/.test(MONTHS[nmo]) ? 'd’' : 'de ') + MONTHS[nmo]);
+    if (ft && !ft.real.length && ft.payDate > today) { var ftn = ftFor(ny, nmo, mv); if (ftn) out.push('le France Travail ' + (/^[aeiouy]/.test(MONTHS[nmo]) ? 'd’' : 'de ') + MONTHS[nmo] + ' (≈ ' + eur(ftn.amt) + ', versé début ' + MONTHS[(nmo + 1) % 12] + ')'); }
+    if (debts) out.push(eur(debts) + ' de dettes (encart « Ce que je dois »)');
+    if (out.length) notes.push('Non compris : ' + out.join(' ; ') + '.');
+    if (ftLab && ft && !ft.real.length) notes.push('Le France Travail est une estimation : ' + ft.dim + ' j × ' + eur(ft.aj) + (ft.cachets.length ? ' − ' + ft.cachets.length + ' cachet' + (ft.cachets.length > 1 ? 's' : '') + ' déclaré' + (ft.cachets.length > 1 ? 's' : '') : '') + '.');
+    $('now-note').textContent = notes.join(' ');
+  }
   // ---------- dettes (paramètres dette_<nom>) : hors total, hors prévisions, sans date ----------
   function debtList() {
     return Object.keys(state.params).filter(function (k) { return /^dette_/i.test(k); }).map(function (k) {
