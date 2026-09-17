@@ -693,7 +693,8 @@ button.tag.act:hover{filter:brightness(1.08)} button.tag.act:active{transform:tr
     }, 'solde ' + a.l + ' = ' + eur(n));
   }
   var pollTimer = null;
-  function startPolling() { clearInterval(pollTimer); pollTimer = setInterval(function () { if (document.visibilityState === 'visible' && key) load(key); }, 60000); }
+  // Relecture automatique toutes les 10 min seulement (chaque lecture coûte 3 opérations Make) ; sinon à l’ouverture, au retour sur la page et après chaque action.
+  function startPolling() { clearInterval(pollTimer); pollTimer = setInterval(function () { if (document.visibilityState === 'visible' && key && !busy) load(key); }, 600000); }
   document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible' && key) load(key); });
 
   // ---------- calculs ----------
