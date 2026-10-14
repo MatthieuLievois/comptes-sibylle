@@ -1,0 +1,354 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="icon-192.png">
+<title>Mes comptes, le mode d'emploi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout : des feuilles A4 empilées (une idée par feuille), imprimables telles quelles ; un seul look « papier » clair, volontaire. */
+:root{
+  color-scheme: light;
+  --paper:#FFFFFF; --desk:#E9E8F1; --ink:#1A1A22; --soft:#55556A; --faint:#8A8A9C; --line:#DCDBE6;
+  --accent:#4338A8; --accent-soft:#ECEAFA;
+  --green:#166F45; --green-bg:#E3F2E9; --red:#A61F17; --red-bg:#FBE6E3;
+  --c-bretagne:#2F5170; --c-grenoble:#3F9A9B; --c-revolut:#D2302C; --c-liquide:#DDA231;
+  --c-ft:#14532D; --c-cachet:#22A03C; --c-remb:#1CA48F; --c-aide:#9BC53D;
+  --c-logement:#DC2626; --c-abo:#F97316; --c-courses:#D4A017; --c-loisirs:#4338CA; --c-sante:#F472B6; --c-vir:#9CA3AF;
+  --display:"Archivo", "Helvetica Neue", Arial, sans-serif;
+  --body:"IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--desk);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5;padding-block:24px;padding-inline:16px}
+.sheet{background:var(--paper);max-width:210mm;margin:0 auto 24px;padding:16mm 15mm;border-radius:6px;box-shadow:0 2px 14px rgba(40,36,90,.10);display:flex;flex-direction:column;gap:18px}
+h1,h2,h3{font-family:var(--display);margin:0;text-wrap:balance;line-height:1.15}
+h1{font-size:34px;font-weight:800;letter-spacing:-.02em}
+h2{font-size:24px;font-weight:800;letter-spacing:-.01em;display:flex;align-items:center;gap:10px}
+h3{font-size:17px;font-weight:700}
+p{margin:0;max-width:62ch}
+.kicker{font-family:var(--display);font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
+.lead{font-size:18px;color:var(--soft);max-width:52ch}
+.big{font-size:17px}
+.muted{color:var(--soft)}
+.small{font-size:13px;color:var(--soft)}
+.ex{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--faint)}
+
+/* trois étapes */
+.flow{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;align-items:stretch}
+.step{border:2px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.step .ico{font-size:30px;line-height:1}
+.step b{font-family:var(--display);font-size:17px}
+.step.mid{border-color:var(--accent);background:var(--accent-soft)}
+@media (max-width:560px){.flow{grid-template-columns:1fr}}
+
+.box{border-radius:14px;padding:14px 16px;background:var(--accent-soft);display:flex;flex-direction:column;gap:8px}
+.box.green{background:var(--green-bg)} .box.red{background:var(--red-bg)} .box.plain{background:transparent;border:2px dashed var(--line)}
+.write{display:flex;align-items:flex-end;gap:10px;font-size:16px}
+.write span.l{flex:1;border-bottom:2px solid var(--ink);min-height:26px}
+.url{font-family:var(--display);font-weight:700;font-size:17px;word-break:break-all;color:var(--accent)}
+
+/* phrases à dire */
+.say{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+@media (max-width:560px){.say{grid-template-columns:1fr}}
+.bubble{border:2px solid var(--line);border-radius:14px 14px 14px 4px;padding:10px 12px;display:flex;flex-direction:column;gap:4px;min-width:0;break-inside:avoid}
+.bubble q{font-family:var(--display);font-weight:700;font-size:17px;quotes:"« " " »"}
+.bubble span{font-size:13px;color:var(--soft)}
+
+/* liste de règles courtes */
+.rules{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px}
+.rules li{display:grid;grid-template-columns:28px minmax(0,1fr);gap:8px;align-items:baseline;font-size:15.5px}
+.rules li i{font-style:normal;font-size:18px}
+
+/* zones de la page */
+.zone{display:grid;grid-template-columns:44px minmax(0,1fr);gap:12px;align-items:start;break-inside:avoid}
+.zone .n{width:40px;height:40px;border-radius:50%;background:var(--accent);color:#fff;font-family:var(--display);font-weight:800;font-size:20px;display:grid;place-items:center}
+.zone .txt{display:flex;flex-direction:column;gap:8px;min-width:0}
+.mock{border:1px solid var(--line);border-radius:12px;padding:10px;background:#F7F7FB;display:flex;flex-direction:column;gap:8px}
+.cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+@media (max-width:560px){.cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.acc{background:var(--c);color:#fff;border-radius:9px;padding:7px 8px;display:flex;flex-direction:column;gap:1px;min-width:0}
+.acc b{font-family:var(--display);font-size:13px} .acc em{font-style:normal;font-family:var(--display);font-weight:800;font-size:16px}
+.acc small{font-size:10.5px;opacity:.85}
+.line{display:flex;justify-content:space-between;align-items:baseline;gap:10px;border-top:1px dashed #C9C8D8;padding-top:7px;font-size:14px}
+.line b{font-family:var(--display);font-size:19px}
+.line b.pos{color:var(--green)} .line b.neg{color:var(--red)}
+.pills{display:flex;flex-wrap:wrap;gap:5px}
+.pill{background:var(--c);color:#fff;border-radius:999px;padding:2px 9px;font-size:12.5px;font-weight:600}
+.tag{display:inline-block;border-radius:6px;padding:1px 7px;font-size:11.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;background:#fff;border:1px solid var(--line);color:var(--soft);white-space:nowrap}
+.tag.ok{color:var(--green);border-color:#9fd0b6} .tag.chk{color:#9A5B00;border-color:#E7C27E} .tag.soon{color:var(--accent);border-color:#C9C3F2}
+.row{background:var(--c);color:#fff;border-radius:9px;padding:6px 10px;display:flex;justify-content:space-between;gap:8px;font-size:13.5px;align-items:center}
+.row.done{background:#E4E3EC;color:#8A8A9C} .row.done span:first-child{text-decoration:line-through}
+.chart{width:100%;height:auto;display:block}
+
+/* boutons de la page */
+.btns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+@media (max-width:560px){.btns{grid-template-columns:1fr}}
+.btn{border:2px solid var(--line);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:5px;min-width:0}
+
+/* aide-mémoire à découper */
+.cut{border:2px dashed var(--ink);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.cut h2{font-size:22px}
+.memo{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 16px;font-size:15px}
+@media (max-width:560px){.memo{grid-template-columns:1fr}}
+.memo div{display:flex;flex-direction:column;gap:1px;min-width:0}
+.memo q{font-family:var(--display);font-weight:700;quotes:"« " " »"}
+
+/* mise en route */
+ol.setup{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:10px;font-size:15px}
+ol.setup li{padding-left:4px}
+code{font-family:ui-monospace,Menlo,monospace;font-size:13px;background:#F1F0F7;border-radius:5px;padding:1px 5px;word-break:break-all}
+.foot{display:flex;justify-content:space-between;font-size:11px;color:var(--faint);margin-top:auto;padding-top:8px;border-top:1px solid var(--line)}
+
+@media print{
+  body{background:#fff;padding:0;font-size:13.5px}
+  .sheet{box-shadow:none;border-radius:0;margin:0;max-width:none;padding:0;min-height:269mm;break-after:page}
+  .sheet:last-child{break-after:auto}
+  @page{size:A4;margin:13mm 14mm}
+}
+</style>
+</head><body>
+
+<!-- ============ PAGE 1 ============ -->
+<section class="sheet">
+  <span class="kicker">Mes comptes · le mode d'emploi de Sibylle</span>
+  <h1>Tu parles. Claude note. Ta page te montre.</h1>
+  <p class="lead">Tu n'as rien à remplir, rien à classer, rien à calculer. Tu dis les choses comme elles viennent, et ta page se met à jour toute seule.</p>
+
+  <div class="flow">
+    <div class="step"><span class="ico">🗣️</span><b>1. Tu dis</b><p>« 12 € petit déj », « j'ai une date le 18 », « Revolut est à 300 € ».</p></div>
+    <div class="step mid"><span class="ico">✍️</span><b>2. Claude note</b><p>Il range au bon endroit et te répond en une ligne.</p></div>
+    <div class="step"><span class="ico">📱</span><b>3. Tu regardes</b><p>Ta page montre ce que tu as, ce qui arrive, ce qui va partir.</p></div>
+  </div>
+
+  <h2>🧰 Ce qu'il te faut</h2>
+  <div class="box">
+    <h3>Pour dire les choses : Claude</h3>
+    <p>Sur ton ordinateur, dans Claude, ouvre <b>Cowork</b> dans ton dossier <b>« Mes comptes »</b>. Sur ton téléphone, ouvre le projet <b>« Mes comptes »</b> dans l'appli Claude. Les deux marchent pareil.</p>
+  </div>
+  <div class="box">
+    <h3>Pour regarder : ta page</h3>
+    <p class="url">matthieulievois.github.io/comptes-sibylle</p>
+    <p class="small">Elle est aussi sur l'écran d'accueil de ton téléphone : l'icône violette avec un €.</p>
+    <div class="write"><span>Mon mot de passe :</span><span class="l"></span></div>
+    <p class="small">Tiphaine l'écrit à la main ici. Il ne faut le taper qu'une fois par appareil.</p>
+  </div>
+
+  <div class="box green">
+    <h3>Tu ne peux rien casser</h3>
+    <p>Une erreur se corrige toujours. Tu dis simplement à Claude : « corrige, c'était 25 € et pas 52 ».</p>
+  </div>
+  <div class="foot"><span>Mes comptes · mode d'emploi</span><span>1 / 6</span></div>
+</section>
+
+<!-- ============ PAGE 2 ============ -->
+<section class="sheet">
+  <span class="kicker">Parler à Claude</span>
+  <h2>🗣️ Dis-le comme tu le dirais à une amie</h2>
+  <p class="big">Pas besoin de phrase complète, ni du bon mot. Voici des exemples qui marchent.</p>
+
+  <div class="say">
+    <div class="bubble"><q>12 € petit déj</q><span>Une dépense d'aujourd'hui, sur ta carte.</span></div>
+    <div class="bubble"><q>courses 45 € en liquide</q><span>Payé avec tes espèces.</span></div>
+    <div class="bubble"><q>j'ai une date le 18 octobre, 250 €</q><span>Un cachet prévu. Il apparaît dans « ce qui doit rentrer ».</span></div>
+    <div class="bubble"><q>date le 25, 150 € en liquide</q><span>Une date payée en espèces. Ça ne change rien à France Travail.</span></div>
+    <div class="bubble"><q>le cachet Mibely est arrivé, 245 €</q><span>Le prévu devient vrai. Il monte dans « ce qui s'est passé ».</span></div>
+    <div class="bubble"><q>Revolut est à 312 € ce matin</q><span>Le solde d'une de tes poches. Ta page se recale dessus.</span></div>
+    <div class="bubble"><q>j'ai mis 100 € sur Revolut</q><span>Un déplacement entre tes poches. Ni gagné, ni dépensé.</span></div>
+    <div class="bubble"><q>je dois 50 € à Anne</q><span>Une dette. Notée à part, sans date.</span></div>
+    <div class="bubble"><q>voilà mon relevé</q><span>Avec une capture d'écran ou le PDF de ta banque. Claude lit tout et évite les doublons.</span></div>
+    <div class="bubble"><q>où j'en suis ?</q><span>Claude te fait le point en quelques lignes.</span></div>
+  </div>
+
+  <h3>Ce qui se passe ensuite</h3>
+  <ul class="rules">
+    <li><i>💬</i><span>Claude te répond en <b>une ligne</b> : « Noté : courses 45 €, en liquide. »</span></li>
+    <li><i>❓</i><span>S'il hésite, il te pose <b>une seule question</b> courte, avec des choix.</span></li>
+    <li><i>🕐</i><span>Ta page affiche le changement dans la minute. Si tu l'as ouverte, tire vers le bas pour la recharger.</span></li>
+    <li><i>🤐</i><span>Claude ne fait <b>jamais</b> de commentaire sur tes dépenses ni sur la façon dont tu es payée.</span></li>
+  </ul>
+  <div class="foot"><span>Mes comptes · mode d'emploi</span><span>2 / 6</span></div>
+</section>
+
+<!-- ============ PAGE 3 ============ -->
+<section class="sheet">
+  <span class="kicker">Lire ta page · le haut</span>
+  <h2>👀 Ta page, de haut en bas</h2>
+  <p class="big">Tu peux t'arrêter à la zone 2 : c'est le chiffre qui compte. Le reste est là quand tu as envie de détails. Les flèches ◀ ▶ en haut changent de mois.</p>
+
+  <div class="zone">
+    <span class="n">1</span>
+    <div class="txt">
+      <h3>💰 Ton solde total aujourd'hui</h3>
+      <p>L'argent que tu as en ce moment. Une carte par poche, chacune sa couleur. Le Livret est rangé dans la carte CMB Bretagne.</p>
+      <div class="mock">
+        <span class="ex">exemple</span>
+        <div class="cards">
+          <div class="acc" style="--c:var(--c-bretagne)"><b>CMB Bretagne</b><em>120 €</em><small>✎ solde</small></div>
+          <div class="acc" style="--c:var(--c-grenoble)"><b>CMB Grenoble</b><em>−300 €</em><small>✎ solde</small></div>
+          <div class="acc" style="--c:var(--c-revolut)"><b>Revolut</b><em>80 €</em><small>✎ solde</small></div>
+          <div class="acc" style="--c:var(--c-liquide)"><b>Liquide</b><em>40 €</em><small>✎ solde</small></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="zone">
+    <span class="n">2</span>
+    <div class="txt">
+      <h3>⚡ Si tout tombait maintenant</h3>
+      <p>Ce qui te resterait si tout ce qui est prévu arrivait aujourd'hui : ce que tu as, plus ce qui doit rentrer, moins ce qui doit partir. <b>Vert, ça passe. Rouge, il manque.</b> La petite flèche ouvre le détail du calcul.</p>
+      <div class="mock">
+        <span class="ex">exemple</span>
+        <div class="line"><span>⚡ Si tout tombait maintenant ▸</span><b class="pos">+ 388 €</b></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="zone">
+    <span class="n">3</span>
+    <div class="txt">
+      <h3>🤝 Ce que je dois</h3>
+      <p>L'argent que tu dois à des gens, sans date. C'est un pense-bête : ce n'est <b>pas</b> retiré de ton total. Fermé par défaut, la flèche l'ouvre.</p>
+    </div>
+  </div>
+
+  <div class="foot"><span>Mes comptes · mode d'emploi</span><span>3 / 6</span></div>
+</section>
+
+<!-- ============ PAGE 4 : le graphique ============ -->
+<section class="sheet">
+  <span class="kicker">Lire ta page · le graphique</span>
+  <div class="zone">
+    <span class="n">4</span>
+    <div class="txt">
+      <h3>📊 Vue d'ensemble</h3>
+      <p>Pour chaque mois, trois colonnes : <b>ce qui est rentré</b>, <b>ce qui est parti</b>, et <b>ce qui reste</b>. Touche une colonne pour voir le détail.</p>
+      <div class="mock">
+        <span class="ex">exemple</span>
+        <svg class="chart" viewBox="0 0 460 150" role="img" aria-label="Exemple de colonnes : rentré, dépensé, reste, et une colonne dû">
+          <defs>
+            <pattern id="hg" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" fill="#22A03C" fill-opacity=".2"/><line x1="0" y1="0" x2="0" y2="6" stroke="#22A03C" stroke-width="2.4"/></pattern>
+            <pattern id="hr" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" fill="#DC2626" fill-opacity=".2"/><line x1="0" y1="0" x2="0" y2="6" stroke="#DC2626" stroke-width="2.4"/></pattern>
+          </defs>
+          <line x1="10" y1="120" x2="450" y2="120" stroke="#C9C8D8"/>
+          <!-- septembre -->
+          <rect x="30" y="40" width="30" height="80" fill="#14532D"/><rect x="30" y="22" width="30" height="18" fill="#22A03C"/>
+          <rect x="66" y="46" width="30" height="74" fill="#DC2626"/><rect x="66" y="34" width="30" height="12" fill="#D4A017"/><rect x="66" y="28" width="30" height="6" fill="#4338CA"/>
+          <rect x="102" y="112" width="30" height="8" rx="3" fill="#166F45"/>
+          <text x="81" y="140" text-anchor="middle" font-family="Archivo, Arial" font-size="13" font-weight="700" fill="#1A1A22">sept.</text>
+          <!-- octobre, prévu -->
+          <rect x="190" y="50" width="30" height="70" fill="url(#hg)"/>
+          <rect x="226" y="40" width="30" height="80" fill="url(#hr)"/>
+          <rect x="262" y="120" width="30" height="10" rx="3" fill="#A61F17" fill-opacity=".45"/>
+          <text x="241" y="146" text-anchor="middle" font-family="Archivo, Arial" font-size="13" font-weight="700" fill="#8A8A9C">oct. (prévu)</text>
+          <!-- dû -->
+          <line x1="350" y1="10" x2="350" y2="140" stroke="#C9C8D8" stroke-dasharray="3 4"/>
+          <rect x="385" y="64" width="30" height="56" fill="url(#hg)"/>
+          <text x="400" y="140" text-anchor="middle" font-family="Archivo, Arial" font-size="13" font-weight="700" fill="#8A8A9C">dû</text>
+        </svg>
+        <ul class="rules">
+          <li><i>🟩</i><span><b>Les verts</b> = l'argent qui rentre (France Travail, cachets, aides, remboursements).</span></li>
+          <li><i>🟥</i><span><b>Toutes les autres couleurs</b> = l'argent qui part (logement, courses, abonnements…).</span></li>
+          <li><i>▨</i><span><b>Hachuré</b> = prévu, pas encore passé.</span></li>
+          <li><i>💰</i><span><b>« dû »</b>, tout à droite = les cachets qu'on te doit, quand tu ne sais pas quand ils seront payés.</span></li>
+        </ul>
+      </div>
+      <p>Au-dessus des colonnes, une <b>ligne</b> suit ton solde total, mois par mois. La partie en <b>pointillé</b> est la prévision.</p>
+      <p>Les boutons <b>Semaine · Mois · Année</b> changent l'échelle. Les pastilles de couleur des comptes permettent de n'en regarder qu'un seul.</p>
+    </div>
+  </div>
+  <div class="foot"><span>Mes comptes · mode d'emploi</span><span>4 / 6</span></div>
+</section>
+
+<!-- ============ PAGE 5 ============ -->
+<section class="sheet">
+  <span class="kicker">Lire ta page · le bas</span>
+
+  <div class="zone">
+    <span class="n">5</span>
+    <div class="txt">
+      <h3>✅ Ce qui s'est passé</h3>
+      <p>Ce qui est <b>vraiment</b> passé sur tes comptes ce mois-ci. Rentré à gauche, dépensé à droite, ligne par ligne.</p>
+    </div>
+  </div>
+
+  <div class="zone">
+    <span class="n">6</span>
+    <div class="txt">
+      <h3>⏳ Ce qui est attendu</h3>
+      <p>À gauche, <b>ce qui doit rentrer</b> : tes dates prévues, et France Travail calculé par la page. À droite, <b>ce qui doit partir</b> : loyer, abonnements… Le total est en haut de chaque carte.</p>
+      <div class="mock">
+        <span class="ex">exemple</span>
+        <div class="row" style="--c:var(--c-cachet)"><span>🎭 Date Mibely · 26/09 <span class="tag soon">prévu</span> <span class="tag ok">✓ reçu</span></span><span>+ 350 €</span></div>
+        <div class="row" style="--c:var(--c-abo)"><span>📡 Téléphone · le 5 <span class="tag soon">à venir</span> <span class="tag ok">✓ payée</span></span><span>50 €</span></div>
+        <div class="row done"><span>🏠 Loyer · le 3</span><span>1 320 €</span></div>
+      </div>
+      <p class="small">Grisé et barré = déjà payé, c'est réglé.</p>
+    </div>
+  </div>
+
+  <div class="box green">
+    <h3>🏛️ France Travail, en une phrase</h3>
+    <p>Chaque date <b>déclarée</b> retire environ <b>69 €</b> à France Travail pour le mois où tu as joué, mais le cachet te rapporte plus que ça. Une date <b>en liquide</b> ne change rien. La page fait le calcul toute seule.</p>
+  </div>
+
+  <div class="zone">
+    <span class="n">7</span>
+    <div class="txt">
+      <h3>📏 Tout en bas : tes droits</h3>
+      <p>Ton allocation par jour, ce que coûte un cachet, et tes heures vers les <b>507</b> qu'il faut pour renouveler tes droits.</p>
+    </div>
+  </div>
+
+  <h2>👆 Les boutons de la page</h2>
+  <p>Tu peux aussi faire certaines choses directement sur la page, sans passer par Claude. La page te demande toujours confirmation.</p>
+  <div class="btns">
+    <div class="btn"><span><span class="tag ok">✓ reçu</span></span><p>L'argent prévu est arrivé. La page te demande le montant exact.</p></div>
+    <div class="btn"><span><span class="tag ok">✓ payée</span></span><p>Une charge fixe est passée sur ton compte.</p></div>
+    <div class="btn"><span><span class="tag chk">à vérifier · ✓ ?</span></span><p>Tu as vérifié la ligne : c'est bon.</p></div>
+    <div class="btn"><span><span class="tag">✎ solde</span></span><p>Sur une carte de compte : tu tapes ce que ta banque affiche.</p></div>
+  </div>
+  <div class="foot"><span>Mes comptes · mode d'emploi</span><span>5 / 6</span></div>
+</section>
+
+<!-- ============ PAGE 6 ============ -->
+<section class="sheet">
+  <div class="cut">
+    <span class="kicker">✂️ À découper et coller sur le frigo</span>
+    <h2>Mes phrases pour Claude</h2>
+    <div class="memo">
+      <div><q>12 € petit déj</q><span class="small">une dépense</span></div>
+      <div><q>courses 45 € en liquide</q><span class="small">payé en espèces</span></div>
+      <div><q>date le 18, 250 €</q><span class="small">un cachet prévu</span></div>
+      <div><q>le cachet X est arrivé</q><span class="small">le prévu est payé</span></div>
+      <div><q>Revolut est à 312 €</q><span class="small">le solde d'une poche</span></div>
+      <div><q>je dois 50 € à Anne</q><span class="small">une dette</span></div>
+      <div><q>voilà mon relevé</q><span class="small">+ capture d'écran</span></div>
+      <div><q>où j'en suis ?</q><span class="small">le point</span></div>
+    </div>
+    <p class="small">Le chiffre à regarder sur ta page : <b>⚡ Si tout tombait maintenant</b>.</p>
+  </div>
+
+  <h2>🛟 Si ça coince</h2>
+  <ul class="rules">
+    <li><i>🔒</i><span><b>La page demande le mot de passe.</b> Retape-le (il est écrit page 1). L'icône du téléphone le demande une fois, même si Safari le connaît déjà.</span></li>
+    <li><i>🕐</i><span><b>Les chiffres n'ont pas bougé.</b> Recharge la page : tire vers le bas sur le téléphone.</span></li>
+    <li><i>🔌</i><span><b>Claude dit qu'il ne trouve pas tes comptes.</b> Vérifie que « Comptes Sibylle » est activé dans le menu des outils, sous la zone où tu écris.</span></li>
+    <li><i>✏️</i><span><b>Un chiffre est faux.</b> Dis-le à Claude : « le loyer c'est 1 320, pas 1 370 ».</span></li>
+    <li><i>📞</i><span><b>Rien ne marche.</b> Envoie une capture d'écran à Tiphaine.</span></li>
+  </ul>
+
+  <div class="box plain">
+    <span class="kicker">Pour Tiphaine · mise en route, une seule fois</span>
+    <ol class="setup">
+      <li>Dans le compte Claude de Sibylle : <b>Personnaliser → Connecteurs → + → Ajouter un connecteur personnalisé</b>. Nom : <b>Comptes Sibylle</b>. Adresse : celle du serveur Make (elle contient la clé, ne jamais l'envoyer par un canal public).</li>
+      <li>Sur son ordinateur, créer un dossier <b>« Mes comptes »</b>. Dans Claude, ouvrir <b>Cowork</b> sur ce dossier et coller les consignes dans les <b>instructions du dossier</b>.</li>
+      <li>Pour le téléphone : dans l'appli Claude, créer un projet <b>« Mes comptes »</b> et coller les mêmes consignes dans ses instructions.</li>
+      <li>Premier essai : « où j'en suis ? ». Quand Claude demande l'autorisation d'utiliser l'outil, choisir <b>Toujours autoriser</b>.</li>
+    </ol>
+  </div>
+  <div class="foot"><span>Mes comptes · mode d'emploi</span><span>6 / 6</span></div>
+</section>
+
+</body></html>
